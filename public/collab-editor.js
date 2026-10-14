@@ -152,6 +152,17 @@ export function createCollabEditor(textarea, opts) {
     resizeObserver.observe(textarea);
   } catch {}
 
+  // crypto.randomUUID only exists in secure contexts (https / localhost).
+  // Fall back to random hex when served over plain http on a LAN hostname.
+  function randomId() {
+    if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+
   function newId(before, idList, count = 1) {
     if (clientId && before !== null && before.bunchId.startsWith(`${clientId}:`)) {
       const maxCounter = idList.maxCounter(before.bunchId);
@@ -160,7 +171,7 @@ export function createCollabEditor(textarea, opts) {
       }
     }
     return {
-      bunchId: `${clientId}:${nextBunchIdCounter++}:${crypto.randomUUID()}`,
+      bunchId: `${clientId}:${nextBunchIdCounter++}:${randomId()}`,
       counter: 0,
     };
   }
