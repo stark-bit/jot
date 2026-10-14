@@ -1701,7 +1701,8 @@
       const isMobile = isMobileDevice;
       if (isMobile) {
         refs.commentFab.style.position = "fixed";
-        refs.commentFab.style.bottom = "1.25rem";
+        // Keep the FAB above mobile browser bottom UI (nav bar / home indicator).
+        refs.commentFab.style.bottom = `calc(1.25rem + env(safe-area-inset-bottom, 0px))`;
         refs.commentFab.style.right = "1.25rem";
         refs.commentFab.style.left = "";
         refs.commentFab.style.top = "";

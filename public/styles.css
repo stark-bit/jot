@@ -98,10 +98,10 @@ html, body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body { min-height: 100vh; }
+body { min-height: 100vh; min-height: 100svh; }
 
-[data-page="editor"], [data-page="editor"] .app-root { height: 100vh; overflow: hidden; }
-[data-page="public"], [data-page="public"] .app-root { height: 100vh; overflow: hidden; }
+[data-page="editor"], [data-page="editor"] .app-root { height: 100vh; height: 100svh; overflow: hidden; }
+[data-page="public"], [data-page="public"] .app-root { height: 100vh; height: 100svh; overflow: hidden; }
 [data-page="public"] .app-root { display: flex; flex-direction: column; }
 [data-page="public"] .preview-stage { flex: 1; min-height: 0; }
 a { color: inherit; text-decoration: none; }
@@ -167,7 +167,7 @@ input, textarea {
 input:focus, textarea:focus { border-color: var(--muted); }
 
 .hidden { display: none !important; }
-.page-shell { min-height: 100vh; }
+.page-shell { min-height: 100vh; min-height: 100svh; }
 .simple-page { display: grid; place-items: center; }
 .simple-page-content { width: min(560px, calc(100vw - 2rem)); }
 
@@ -182,7 +182,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
 .auth-actions { padding-top: 0.4rem; }
 .auth-actions button { border-radius: 10px; padding: 0.8rem 1rem; }
 
-.app-root { min-height: 100vh; overflow: hidden; }
+.app-root { min-height: 100vh; min-height: 100svh; overflow: hidden; }
 
 .topbar {
   min-height: var(--toolbar-height);
@@ -261,7 +261,9 @@ input:focus, textarea:focus { border-color: var(--muted); }
 
 .workspace {
   display: grid; grid-template-columns: 1fr 1fr;
-  height: calc(100vh - var(--toolbar-height)); overflow: hidden;
+  height: calc(100vh - var(--toolbar-height));
+  height: calc(100svh - var(--toolbar-height));
+  overflow: hidden;
 }
 .editor-pane {
   border-right: 1px solid var(--line); background: var(--editor-bg); overflow: hidden;
@@ -505,6 +507,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
     transform: translateX(100%);
     transition: transform 250ms ease;
     min-height: 100vh; height: 100vh;
+    min-height: 100svh; height: 100svh;
   }
   .workspace .preview-stage.preview-open {
     transform: translateX(0);
@@ -515,7 +518,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
   /* Editor takes full height */
   .editor-textarea { min-height: 0; flex: 1; }
 
-  .preview-scroll, .preview-stage { height: 100vh; min-height: 100vh; }
+  .preview-scroll, .preview-stage { height: 100vh; min-height: 100vh; height: 100svh; min-height: 100svh; }
   .preview-scroll { height: 100%; }
   .preview-canvas { padding-right: 0; }
   .preview-content, .preview-stage.public .preview-content { width: auto; max-width: none; padding: 2rem 1rem 1rem; }
