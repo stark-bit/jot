@@ -131,6 +131,22 @@ const dataDir = cliArg("data") || process.env.DATA_DIR || path.join(process.cwd(
 const notesDir = path.join(dataDir, "notes");
 const authFilePath = path.join(dataDir, "auth.json");
 const publicDir = path.join(path.resolve(__dirname, ".."), "public");
+
+// Hash public assets to bust browser cache.
+const staticVersion = (() => {
+  const hash = crypto.createHash("sha256");
+  for (const entry of fs.readdirSync(publicDir).sort()) {
+    const full = path.join(publicDir, entry);
+    if (!fs.statSync(full).isFile()) continue;
+    hash.update(entry);
+    hash.update(fs.readFileSync(full));
+  }
+  return hash.digest("hex").slice(0, 16);
+})();
+
+function staticSrc(file: string) {
+  return `/static/${file}?v=${staticVersion}`;
+}
 const ownerSessionCookieName = "md_owner_session";
 const ownerLocalStorageTokenKey = "md_owner_token";
 const commenterIdCookieName = "md_commenter_id";
@@ -2102,8 +2118,8 @@ function renderSimplePage(title: string, body: string) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(title)}</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-    <script src="/static/theme.js"></script>
+    <link rel="stylesheet" href="${staticSrc("styles.css")}" />
+    <script src="${staticSrc("theme.js")}"></script>
   </head>
   <body class="page-shell simple-page">
     <main class="simple-page-content">${body}</main>
@@ -2125,8 +2141,8 @@ function renderAuthPage(mode: "login" | "setup") {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${title}</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-    <script src="/static/theme.js"></script>
+    <link rel="stylesheet" href="${staticSrc("styles.css")}" />
+    <script src="${staticSrc("theme.js")}"></script>
   </head>
   <body class="page-shell auth-shell" data-auth-mode="${mode}">
     <button type="button" class="text-button theme-toggle auth-theme-toggle" aria-label="Toggle theme"></button>
@@ -2148,7 +2164,7 @@ function renderAuthPage(mode: "login" | "setup") {
     </main>
     <script>window.__OWNER_TOKEN_KEY__ = ${JSON.stringify(ownerLocalStorageTokenKey)};</script>
     <script>document.querySelectorAll('.theme-toggle').forEach(function(b){b.innerHTML=window.__themeIcon(document.documentElement.getAttribute('data-theme')||'dark')});</script>
-    <script src="/static/login.js" defer></script>
+    <script src="${staticSrc("login.js")}" defer></script>
   </body>
 </html>`;
 }
@@ -2173,25 +2189,25 @@ function renderAppShell(
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>${escapeHtml(title)}</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-    <script src="/static/theme.js"></script>
+    <link rel="stylesheet" href="${staticSrc("styles.css")}" />
+    <script src="${staticSrc("theme.js")}"></script>
   </head>
   <body class="page-shell app-page" ${attrs}>
     <div id="app"></div>
-    <script>window.__OWNER_TOKEN_KEY__ = ${JSON.stringify(ownerLocalStorageTokenKey)};</script>
+    <script>window.__OWNER_TOKEN_KEY__ = ${JSON.stringify(ownerLocalStorageTokenKey)};window.__STATIC_VERSION__ = ${JSON.stringify(staticVersion)};</script>
     <script>document.querySelectorAll('.theme-toggle').forEach(function(b){b.innerHTML=window.__themeIcon(document.documentElement.getAttribute('data-theme')||'dark')});</script>
-    <script src="/static/components.js"></script>${
+    <script src="${staticSrc("components.js")}"></script>${
       page !== "list"
         ? `
     <script type="module">
-      import mermaid from "/static/mermaid/mermaid.esm.min.mjs";
+      import mermaid from "/static/mermaid/mermaid.esm.min.mjs?v=${staticVersion}";
       mermaid.initialize({ startOnLoad: false, theme: document.documentElement.getAttribute("data-theme") === "light" ? "default" : "dark" });
       window.__mermaid = mermaid;
       if (window.__renderMermaid) { var c = document.getElementById("previewContent"); if (c) window.__renderMermaid(c); }
     </script>`
         : ""
     }
-    <script src="/static/app.js" defer></script>
+    <script src="${staticSrc("app.js")}" defer></script>
   </body>
 </html>`;
 }

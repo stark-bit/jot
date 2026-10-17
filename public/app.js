@@ -419,7 +419,8 @@
 
     function initCollabEditor() {
       if (!editorTextarea) return;
-      import("/static/collab-editor.js").then(({ createCollabEditor }) => {
+      const sv = window.__STATIC_VERSION__;
+      import("/static/collab-editor.js" + (sv ? "?v=" + encodeURIComponent(sv) : "")).then(({ createCollabEditor }) => {
         collabEditor = createCollabEditor(editorTextarea, {
           noteId: isPublic ? undefined : noteId,
           shareId: isPublic ? shareId : undefined,
