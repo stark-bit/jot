@@ -45,6 +45,24 @@ function lineBackward(text, cursor) {
   return Math.max(0, i);
 }
 
+// Detect a list marker at lineStart.
+export function listMarkerAt(text, lineStart) {
+  let i = lineStart;
+  let indent = "";
+  while (i < text.length && (text[i] === " " || text[i] === "\t")) { indent += text[i]; i++; }
+  if (text.slice(i, i + 2) !== "- ") return null;
+  return { indent, marker: "- " };
+}
+
+// True when Enter should continue the list.
+function continuesList(text, lineStart, marker, caret) {
+  const markerEnd = lineStart + marker.indent.length + marker.marker.length;
+  if (caret < markerEnd) return false;
+  let lineEnd = text.indexOf("\n", lineStart);
+  if (lineEnd === -1) lineEnd = text.length;
+  return text.slice(markerEnd, lineEnd).trim().length > 0;
+}
+
 function buildDeleteMutation(state, start, endExcl, counter) {
   if (start < 0 || endExcl <= start || endExcl > state.text.length) return null;
   return {
@@ -373,7 +391,12 @@ export function createCollabEditor(textarea, opts) {
     }
     if (it === "insertLineBreak" || it === "insertParagraph") {
       event.preventDefault();
-      pushIns(sel.start, "\n"); sel = { start: sel.start + 1, end: sel.start + 1, direction: "none" };
+      // Continue bullets on Enter; plain newline otherwise.
+      const lineStart = lineBackward(currentState.text, sel.start);
+      const m = listMarkerAt(currentState.text, lineStart);
+      let ins = "\n";
+      if (m && continuesList(currentState.text, lineStart, m, sel.start)) ins = "\n" + m.indent + m.marker;
+      pushIns(sel.start, ins); sel = { start: sel.start + ins.length, end: sel.start + ins.length, direction: "none" };
       applyLocalMutations(mutations, sel); return;
     }
     if (it === "deleteContentBackward") {
