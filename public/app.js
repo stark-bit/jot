@@ -12,6 +12,16 @@
   const isMobileDevice = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
     (navigator.userAgent.includes("Mac") && "ontouchstart" in window && navigator.maxTouchPoints > 1);
 
+  // Track the keyboard-shrunk visual viewport height.
+  const vv = window.visualViewport;
+  if (vv) {
+    const syncAppHeight = () =>
+      document.documentElement.style.setProperty("--app-height", vv.height + "px");
+    vv.addEventListener("resize", syncAppHeight);
+    vv.addEventListener("scroll", syncAppHeight);
+    syncAppHeight();
+  }
+
   const themeIcon = window.__themeIcon || ((t) => t === "dark" ? "☀" : "☾");
 
   let mermaidIdCounter = 0;

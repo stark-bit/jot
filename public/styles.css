@@ -100,8 +100,8 @@ html, body {
 
 body { min-height: 100vh; min-height: 100svh; }
 
-[data-page="editor"], [data-page="editor"] .app-root { height: 100vh; height: 100svh; overflow: hidden; }
-[data-page="public"], [data-page="public"] .app-root { height: 100vh; height: 100svh; overflow: hidden; }
+[data-page="editor"], [data-page="editor"] .app-root { height: 100vh; height: 100svh; height: var(--app-height, 100svh); overflow: hidden; }
+[data-page="public"], [data-page="public"] .app-root { height: 100vh; height: 100svh; height: var(--app-height, 100svh); overflow: hidden; }
 [data-page="public"] .app-root { display: flex; flex-direction: column; }
 [data-page="public"] .preview-stage { flex: 1; min-height: 0; }
 a { color: inherit; text-decoration: none; }
@@ -263,6 +263,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
   display: grid; grid-template-columns: 1fr 1fr;
   height: calc(100vh - var(--toolbar-height));
   height: calc(100svh - var(--toolbar-height));
+  height: calc(var(--app-height, 100svh) - var(--toolbar-height));
   overflow: hidden;
 }
 .editor-pane {
@@ -508,6 +509,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
     transition: transform 250ms ease;
     min-height: 100vh; height: 100vh;
     min-height: 100svh; height: 100svh;
+    min-height: var(--app-height, 100svh); height: var(--app-height, 100svh);
   }
   .workspace .preview-stage.preview-open {
     transform: translateX(0);
@@ -518,7 +520,7 @@ input:focus, textarea:focus { border-color: var(--muted); }
   /* Editor takes full height */
   .editor-textarea { min-height: 0; flex: 1; }
 
-  .preview-scroll, .preview-stage { height: 100vh; min-height: 100vh; height: 100svh; min-height: 100svh; }
+  .preview-scroll, .preview-stage { height: 100vh; min-height: 100vh; height: 100svh; min-height: 100svh; height: var(--app-height, 100svh); min-height: var(--app-height, 100svh); }
   .preview-scroll { height: 100%; }
   .preview-canvas { padding-right: 0; }
   .preview-content, .preview-stage.public .preview-content { width: auto; max-width: none; padding: 2rem 1rem 1rem; }
