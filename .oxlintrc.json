@@ -151,10 +151,31 @@
       "files": ["client/**/*.ts"],
       "env": {
         "browser": true
+      },
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^[^./]",
+                "allowTypeImports": true,
+                "message": "The browser loads client/ files unbundled, so bare package imports do not resolve (ADR-0003). Use a relative path or a /static URL."
+              }
+            ]
+          }
+        ]
       }
     },
     {
-      "files": ["server/**/*.ts", "shared/**/*.ts", "cli/**/*.mts", "tests/**/*.{ts,mts}", "*.config.ts"],
+      "files": [
+        "server/**/*.ts",
+        "shared/**/*.ts",
+        "cli/**/*.mts",
+        "tests/**/*.{ts,mts}",
+        "*.config.ts",
+        "scripts/**/*.mjs"
+      ],
       "env": {
         "node": true
       }
