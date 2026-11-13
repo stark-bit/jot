@@ -80,7 +80,7 @@ function buildDeleteMutation(state, start, endExcl, counter) {
 function buildInsertMutation(state, index, content, counter, newId) {
   if (!content) return null;
   const before = index === 0 ? null : state.idList.at(index - 1);
-  const id = newId(before, state.idList, content.length);
+  const id = newId(before, state.idList);
   const prev = index > 0 ? state.text[index - 1] : "";
   const next = index < state.text.length ? state.text[index] : "";
   return {
@@ -154,10 +154,25 @@ function measureCaretPositions(textarea, mirror, indices) {
   return result;
 }
 
+// crypto.randomUUID only exists in secure contexts (https / localhost).
+// Fall back to random hex when served over plain http on a LAN hostname.
+function randomId() {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 // ---- Main editor ----
 
 export function createCollabEditor(textarea, opts) {
-  const { noteId, shareId, name, onReady, onTextChange, onConnectionChange, onThreadsUpdated } = opts;
+  const { noteId, shareId, onReady, onTextChange, onConnectionChange, onThreadsUpdated } = opts;
   let nextBunchIdCounter = 0;
 
   let ws = null;
@@ -196,18 +211,7 @@ export function createCollabEditor(textarea, opts) {
     resizeObserver.observe(textarea);
   } catch {}
 
-  // crypto.randomUUID only exists in secure contexts (https / localhost).
-  // Fall back to random hex when served over plain http on a LAN hostname.
-  function randomId() {
-    if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
-    const bytes = crypto.getRandomValues(new Uint8Array(16));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  }
-
-  function newId(before, idList, count = 1) {
+  function newId(before, idList) {
     if (clientId && before !== null && before.bunchId.startsWith(`${clientId}:`)) {
       const maxCounter = idList.maxCounter(before.bunchId);
       if (maxCounter === before.counter) {
@@ -291,10 +295,6 @@ export function createCollabEditor(textarea, opts) {
       el.innerHTML = `<div class="remote-cursor-caret" style="background:${cursor.color};height:${lineHeight}px"></div><div class="remote-cursor-label" style="background:${cursor.color}">${escapeHtml(cursor.name)}</div>`;
       overlay.appendChild(el);
     }
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   // ---- Presence sending ----

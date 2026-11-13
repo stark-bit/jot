@@ -30,6 +30,12 @@
       "env": {
         "node": true
       }
+    },
+    {
+      "files": ["public/app.js"],
+      "rules": {
+        "unicorn/consistent-function-scoping": "off"
+      }
     }
   ]
 }

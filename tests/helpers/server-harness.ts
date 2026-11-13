@@ -174,7 +174,7 @@ export async function startTestServer(options: { beforeStart?: (dataDir: string)
     requestPath(requestPath, init = {}) {
       const headers: Record<string, string> = {
         Cookie: ownerCookie,
-        ...((init.headers as Record<string, string>) || {}),
+        ...(init.headers as Record<string, string> | undefined),
       };
       let body = init.body;
       if (body !== undefined && typeof body !== "string") {

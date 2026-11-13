@@ -429,7 +429,7 @@
     if (shareButton) {
       shareButton.addEventListener("click", (e) => {
         e.stopPropagation();
-        toggleSharePopover(refs);
+        toggleSharePopover();
       });
     }
 
@@ -459,19 +459,16 @@
       logoutButton.addEventListener("click", logoutOwner);
     }
 
-    let collabEditor = null;
-
     function initCollabEditor() {
       if (!editorTextarea) return;
       const sv = window.__STATIC_VERSION__;
       import("/static/collab-editor.js" + (sv ? "?v=" + encodeURIComponent(sv) : "")).then(({ createCollabEditor }) => {
-        collabEditor = createCollabEditor(editorTextarea, {
+        createCollabEditor(editorTextarea, {
           noteId: isPublic ? undefined : noteId,
           shareId: isPublic ? shareId : undefined,
-          name: isPublic ? state.viewer?.commenterName || "Anonymous" : "Owner",
           onReady: (payload) => {
             state.note = {
-              ...(state.note || {}),
+              ...state.note,
               id: payload.noteId,
               title: payload.title,
               shareId: payload.shareId,
@@ -794,7 +791,7 @@
           refs.commenterLabel.textContent = payload.viewer.commenterName ? payload.viewer.commenterName : "anonymous";
         }
         syncThreadLayout(refs);
-        refreshOpenThreadDialog(refs, publicMode);
+        refreshOpenThreadDialog(refs);
       } catch (e) {
         console.error("Failed to reload threads:", e);
       }
@@ -990,7 +987,7 @@
     }
   }
 
-  function toggleSharePopover(refs) {
+  function toggleSharePopover() {
     const popover = document.getElementById("sharePopover");
     if (!popover) return;
     if (!popover.classList.contains("hidden")) {
@@ -1677,7 +1674,7 @@
     syncThreadLayout(refs);
   }
 
-  function refreshOpenThreadDialog(refs, isPublic) {
+  function refreshOpenThreadDialog(refs) {
     if (!state.modalOpen || !state.activeThreadId) return;
     const body = refs.modalBackdrop?.querySelector(".thread-modal-body");
     if (!body) return;

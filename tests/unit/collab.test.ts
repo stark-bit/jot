@@ -279,16 +279,16 @@ describe("markdown round-trip", () => {
   });
 });
 
-describe("collab state save/load round-trip", () => {
-  function stateWithHistory(): CollabState {
-    let state = collabFromMarkdown("the quick brown fox");
-    state = applyClientMutations(state, [deleteMutation(idAtIndex(state, 4), idAtIndex(state, 8), 5)]).state;
-    state = applyClientMutations(state, [
-      insertMutation(idAtIndex(state, 3), { bunchId: "c1", counter: 0 }, "very "),
-    ]).state;
-    return state;
-  }
+function stateWithHistory(): CollabState {
+  let state = collabFromMarkdown("the quick brown fox");
+  state = applyClientMutations(state, [deleteMutation(idAtIndex(state, 4), idAtIndex(state, 8), 5)]).state;
+  state = applyClientMutations(state, [
+    insertMutation(idAtIndex(state, 3), { bunchId: "c1", counter: 0 }, "very "),
+  ]).state;
+  return state;
+}
 
+describe("collab state save/load round-trip", () => {
   it("restores text, ids, and counter", () => {
     const state = stateWithHistory();
     const saved = saveCollabState(state);

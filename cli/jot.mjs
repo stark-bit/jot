@@ -219,7 +219,7 @@ if (isShareInstance(instance)) {
         console.error("Usage: jot <instance> comment <quote> <body>");
         process.exit(1);
       }
-      const payload = await request(instance, "POST", `/api/share/${sid}/threads`, {
+      await request(instance, "POST", `/api/share/${sid}/threads`, {
         anchor: { quote, prefix: "", suffix: "", start: 0, end: 0 },
         body,
         name: agentName,
@@ -467,7 +467,7 @@ if (isShareInstance(instance)) {
         console.error("Access must be one of: none, view, comment, edit");
         process.exit(1);
       }
-      const sharePayload = await request(instance, "PUT", `/api/notes/${noteId}`, { shareAccess: access });
+      await request(instance, "PUT", `/api/notes/${noteId}`, { shareAccess: access });
       const readPayload = await request(instance, "GET", `/api/notes/${noteId}`);
       console.log(`${noteId}\t${readPayload.note.shareAccess}\t${readPayload.note.shareUrl}`);
       break;
