@@ -538,6 +538,7 @@
     }
 
     if (previewScroll) previewScroll.addEventListener("scroll", () => scheduleLayout(refs));
+    if (editorTextarea) editorTextarea.addEventListener("scroll", () => syncPreviewScroll(refs));
     window.addEventListener("resize", () => scheduleLayout(refs));
 
     document.addEventListener("selectionchange", () => {
@@ -832,9 +833,21 @@
           body: { markdown: state.note?.markdown || "" },
         });
         setPreviewHtml(refsArg, payload.html);
+        syncPreviewScroll(refsArg);
         syncThreadLayout(refsArg);
       }, 150);
     }
+  }
+
+  // Proportional editor -> preview scroll sync, desktop side-by-side only.
+  // See docs/adr/0002-proportional-preview-scroll-sync.md.
+  function syncPreviewScroll(refs) {
+    const source = refs.editorTextarea;
+    const target = refs.previewScroll;
+    if (!source || !target || !window.matchMedia("(min-width: 981px)").matches) return;
+    const sourceMax = source.scrollHeight - source.clientHeight;
+    const ratio = sourceMax > 0 ? source.scrollTop / sourceMax : 0;
+    target.scrollTop = ratio * (target.scrollHeight - target.clientHeight);
   }
 
   function renderEditorLayout() {
