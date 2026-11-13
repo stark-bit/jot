@@ -1,6 +1,6 @@
 # Proportional preview scroll sync
 
-On desktop, the preview follows the editor by scroll ratio: when the textarea is scrolled N%, the preview is scrolled N%. One-way (editor to preview), side-by-side layout only (`min-width: 981px`), client-only in `syncPreviewScroll` in `public/app.js`. Chosen as the trivial version to try in daily use before investing more.
+On desktop, the preview follows the editor by scroll ratio: when the textarea is scrolled N%, the preview is scrolled N%. One-way (editor to preview), side-by-side layout only (`min-width: 981px`), client-only in `syncPreviewScroll` in `client/app.ts`. Chosen as the trivial version to try in daily use before investing more.
 
 ## Considered Options
 
