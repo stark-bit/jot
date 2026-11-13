@@ -5,6 +5,19 @@ import {
   selectionFromIds,
   selectionToIds,
 } from "./collab-shared.js";
+import type {
+  ClientDeleteMutation,
+  ClientInsertMutation,
+  ClientMutation,
+  ClientMutationMessage,
+  ClientPresenceMessage,
+  ElementId,
+  ServerHelloMessage,
+  ServerMessage,
+  ServerMutationMessage,
+  ServerPresenceLeaveMessage,
+  ServerPresenceMessage,
+} from "../shared/protocol";
 
 const PRESENCE_THROTTLE_MS = 80;
 const RECONNECT_BASE_MS = 1000;
@@ -74,7 +87,7 @@ function continuesList(text, lineStart, marker, caret) {
   return text.slice(markerEnd, lineEnd).trim().length > 0;
 }
 
-function buildDeleteMutation(state, start, endExcl, counter) {
+function buildDeleteMutation(state, start, endExcl, counter): ClientDeleteMutation | null {
   if (start < 0 || endExcl <= start || endExcl > state.text.length) return null;
   return {
     name: "delete",
@@ -83,7 +96,7 @@ function buildDeleteMutation(state, start, endExcl, counter) {
   };
 }
 
-function buildInsertMutation(state, index, content, counter, newId) {
+function buildInsertMutation(state, index, content, counter, newId): ClientInsertMutation | null {
   if (!content) return null;
   const before = index === 0 ? null : state.idList.at(index - 1);
   const id = newId(before, state.idList);
@@ -96,7 +109,7 @@ function buildInsertMutation(state, index, content, counter, newId) {
   };
 }
 
-function replayPending(serverState, pending) {
+function replayPending(serverState, pending: ClientMutation[]) {
   let s = { text: serverState.text, idList: serverState.idList.clone() };
   for (const m of pending) s = applyClientMutation(s, m);
   return s;
@@ -196,7 +209,7 @@ export function createCollabEditor(textarea, opts) {
 
   let serverState = { text: "", idList: new SimpleIdList() };
   let currentState = { text: "", idList: new SimpleIdList() };
-  let pendingMutations = [];
+  let pendingMutations: ClientMutation[] = [];
 
   // Remote presence
   const remoteCursors = new Map(); // clientId -> { name, color, selection, lastUpdate }
@@ -221,7 +234,7 @@ export function createCollabEditor(textarea, opts) {
     resizeObserver.observe(textarea);
   } catch {}
 
-  function newId(before, idList) {
+  function newId(before: ElementId | null, idList): ElementId {
     if (clientId && before !== null && before.bunchId.startsWith(`${clientId}:`)) {
       const maxCounter = idList.maxCounter(before.bunchId);
       if (maxCounter === before.counter) {
@@ -339,7 +352,7 @@ export function createCollabEditor(textarea, opts) {
     const key = JSON.stringify(sel);
     if (key === lastSentSelection) return;
     lastSentSelection = key;
-    ws.send(JSON.stringify({ type: "presence", clientId, selection: sel }));
+    ws.send(JSON.stringify({ type: "presence", clientId, selection: sel } satisfies ClientPresenceMessage));
   }
 
   function throttledPresence() {
@@ -361,7 +374,7 @@ export function createCollabEditor(textarea, opts) {
 
   // ---- Mutations ----
 
-  function applyLocalMutations(mutations, sel) {
+  function applyLocalMutations(mutations: ClientMutation[], sel) {
     if (!mutations.length) return;
     for (const m of mutations) {
       currentState = applyClientMutation(currentState, m);
@@ -370,14 +383,14 @@ export function createCollabEditor(textarea, opts) {
     render(sel);
     ensureCaretVisible();
     if (ws && ws.readyState === WebSocket.OPEN && clientId) {
-      ws.send(JSON.stringify({ type: "mutation", clientId, mutations }));
+      ws.send(JSON.stringify({ type: "mutation", clientId, mutations } satisfies ClientMutationMessage));
     }
     throttledPresence();
   }
 
   // ---- Server messages ----
 
-  function receiveHello(msg) {
+  function receiveHello(msg: ServerHelloMessage) {
     const selIds = initialized
       ? selectionToIds(
           currentState.idList,
@@ -397,12 +410,14 @@ export function createCollabEditor(textarea, opts) {
     onReady?.({ noteId: msg.noteId, title: msg.title, shareId: msg.shareId, markdown: currentState.text });
 
     if (pendingMutations.length > 0 && ws && ws.readyState === WebSocket.OPEN && clientId) {
-      ws.send(JSON.stringify({ type: "mutation", clientId, mutations: pendingMutations }));
+      ws.send(
+        JSON.stringify({ type: "mutation", clientId, mutations: pendingMutations } satisfies ClientMutationMessage),
+      );
     }
     throttledPresence();
   }
 
-  function receiveMutation(msg) {
+  function receiveMutation(msg: ServerMutationMessage) {
     if (!initialized) return;
     const selIds = selectionToIds(
       currentState.idList,
@@ -420,7 +435,7 @@ export function createCollabEditor(textarea, opts) {
     throttledPresence();
   }
 
-  function receivePresence(msg) {
+  function receivePresence(msg: ServerPresenceMessage) {
     remoteCursors.set(msg.clientId, {
       name: msg.name,
       color: msg.color,
@@ -430,7 +445,7 @@ export function createCollabEditor(textarea, opts) {
     renderRemoteCursors();
   }
 
-  function receivePresenceLeave(msg) {
+  function receivePresenceLeave(msg: ServerPresenceLeaveMessage) {
     remoteCursors.delete(msg.clientId);
     renderRemoteCursors();
   }
@@ -594,7 +609,7 @@ export function createCollabEditor(textarea, opts) {
 
     ws.addEventListener("open", () => {});
     ws.addEventListener("message", (event) => {
-      let msg;
+      let msg: ServerMessage;
       try {
         msg = JSON.parse(event.data);
       } catch {

@@ -1,95 +1,22 @@
 import crypto from "node:crypto";
 import { IdList, type ElementId, type SavedIdList } from "articulated";
 
-export type ClientInsertMutation = {
-  name: "insert";
-  args: {
-    before: ElementId | null;
-    id: ElementId;
-    content: string;
-    isInWord: boolean;
-  };
-  clientCounter: number;
-};
+import type { ClientDeleteMutation, ClientInsertMutation, ClientMutation, IdListUpdate } from "../shared/protocol";
 
-export type ClientDeleteMutation = {
-  name: "delete";
-  args: {
-    startId: ElementId;
-    endId?: ElementId;
-    contentLength?: number;
-  };
-  clientCounter: number;
-};
-
-export type ClientMutation = ClientInsertMutation | ClientDeleteMutation;
-
-export type ClientMutationMessage = {
-  type: "mutation";
-  clientId: string;
-  mutations: ClientMutation[];
-};
-
-export type IdListUpdate =
-  | {
-      type: "insertAfter";
-      before: ElementId | null;
-      id: ElementId;
-      count: number;
-    }
-  | {
-      type: "deleteRange";
-      startIndex: number;
-      endIndex: number;
-    };
-
-export type ServerHelloMessage = {
-  type: "hello";
-  clientId?: string;
-  noteId: string;
-  title: string;
-  shareId: string;
-  markdown: string;
-  idListState: SavedIdList;
-  serverCounter: number;
-};
-
-export type ServerMutationMessage = {
-  type: "mutation";
-  senderId: string;
-  senderCounter: number;
-  serverCounter: number;
-  markdown: string;
-  idListUpdates: IdListUpdate[];
-};
-
-export type PresenceSelection =
-  | { type: "cursor"; cursor: { bunchId: string; counter: number } | null }
-  | {
-      type: "range";
-      start: { bunchId: string; counter: number } | null;
-      end: { bunchId: string; counter: number } | null;
-      direction: "forward" | "backward";
-    };
-
-export type ClientPresenceMessage = {
-  type: "presence";
-  clientId: string;
-  selection: PresenceSelection;
-};
-
-export type ServerPresenceMessage = {
-  type: "presence";
-  clientId: string;
-  name: string;
-  color: string;
-  selection: PresenceSelection;
-};
-
-export type ServerPresenceLeaveMessage = {
-  type: "presence-leave";
-  clientId: string;
-};
+// Protocol types moved to shared/; re-exported so existing imports keep working.
+export type {
+  ClientInsertMutation,
+  ClientDeleteMutation,
+  ClientMutation,
+  ClientMutationMessage,
+  IdListUpdate,
+  ServerHelloMessage,
+  ServerMutationMessage,
+  PresenceSelection,
+  ClientPresenceMessage,
+  ServerPresenceMessage,
+  ServerPresenceLeaveMessage,
+} from "../shared/protocol";
 
 export type SavedCharBunch = {
   bunchId: string;

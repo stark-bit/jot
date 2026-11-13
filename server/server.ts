@@ -25,6 +25,7 @@ import {
   idBeforeIndex,
   idAtIndex,
 } from "./collab.js";
+import type { ServerMessage } from "../shared/protocol";
 import hljs from "highlight.js";
 import { marked, type Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
@@ -1334,13 +1335,7 @@ function handleEditorMessage(conn: ClientConn, data: string) {
   broadcastNoteUpdate(note);
 }
 
-type AnyServerMessage =
-  | (ServerHelloMessage & { clientId?: string })
-  | ServerMutationMessage
-  | ServerPresenceMessage
-  | ServerPresenceLeaveMessage
-  | { type: "updated"; noteId: string; shareId: string; updatedAt: string }
-  | { type: "threads-updated"; noteId: string; shareId: string };
+type AnyServerMessage = ServerMessage;
 
 function sendServerMessage(ws: WebSocket, message: AnyServerMessage) {
   if (ws.readyState === 1) {

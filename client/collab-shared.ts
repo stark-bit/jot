@@ -1,8 +1,10 @@
-function cloneId(id) {
+import type { ClientMutation, ElementId, IdListUpdate, PresenceSelection, SavedIdList } from "../shared/protocol";
+
+function cloneId(id: ElementId | null): ElementId | null {
   return id ? { bunchId: id.bunchId, counter: id.counter } : null;
 }
 
-function idsEqual(a, b) {
+function idsEqual(a: ElementId | null, b: ElementId | null) {
   return !!a && !!b && a.bunchId === b.bunchId && a.counter === b.counter;
 }
 
@@ -23,7 +25,7 @@ export class SimpleIdList {
     }
   }
 
-  static load(savedState) {
+  static load(savedState: SavedIdList) {
     const entries = [];
     for (const item of savedState || []) {
       for (let offset = 0; offset < item.count; offset++) {
@@ -42,7 +44,7 @@ export class SimpleIdList {
     return new SimpleIdList(this.entries.map((entry) => ({ id: cloneId(entry.id), isDeleted: entry.isDeleted })));
   }
 
-  findKnownIndex(id) {
+  findKnownIndex(id: ElementId) {
     // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
     // @ts-expect-error
     for (let index = 0; index < this.entries.length; index++) {
@@ -56,14 +58,14 @@ export class SimpleIdList {
     return -1;
   }
 
-  has(id) {
+  has(id: ElementId) {
     const knownIndex = this.findKnownIndex(id);
     // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
     // @ts-expect-error
     return knownIndex !== -1 && !this.entries[knownIndex].isDeleted;
   }
 
-  isKnown(id) {
+  isKnown(id: ElementId) {
     return this.findKnownIndex(id) !== -1;
   }
 
@@ -88,7 +90,7 @@ export class SimpleIdList {
     throw new Error(`Index out of bounds: ${index}`);
   }
 
-  indexOf(id, bias = "none") {
+  indexOf(id: ElementId, bias = "none") {
     const knownIndex = this.findKnownIndex(id);
     if (knownIndex === -1) {
       throw new Error("id is not known");
@@ -118,7 +120,7 @@ export class SimpleIdList {
     return -1;
   }
 
-  cursorAt(index, bind = "left") {
+  cursorAt(index: number, bind = "left"): ElementId | null {
     // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
     // @ts-expect-error
     if (!Number.isInteger(index) || index < 0 || index > this.length) {
@@ -132,7 +134,7 @@ export class SimpleIdList {
     return index === this.length ? null : this.at(index);
   }
 
-  cursorIndex(cursor, bind = "left") {
+  cursorIndex(cursor: ElementId | null, bind = "left") {
     if (bind === "left") {
       return cursor === null ? 0 : this.indexOf(cursor, "left") + 1;
     }
@@ -155,7 +157,7 @@ export class SimpleIdList {
     return max;
   }
 
-  insertAfter(before, startId, count = 1) {
+  insertAfter(before: ElementId | null, startId: ElementId, count = 1) {
     if (!Number.isInteger(count) || count < 0) {
       throw new Error(`Invalid count: ${count}`);
     }
@@ -260,7 +262,7 @@ export class TrackedIdList {
     return updates;
   }
 
-  insertAfter(before, id, count = 1) {
+  insertAfter(before: ElementId | null, id: ElementId, count = 1) {
     // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
     // @ts-expect-error
     this._idList.insertAfter(before, id, count);
@@ -286,7 +288,7 @@ export class TrackedIdList {
     }
   }
 
-  apply(update) {
+  apply(update: IdListUpdate) {
     switch (update.type) {
       case "insertAfter":
         // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
@@ -340,7 +342,7 @@ export class ElementIdGenerator {
   }
 }
 
-export function applyClientMutation(state, mutation) {
+export function applyClientMutation(state, mutation: ClientMutation) {
   const trackedIds = new TrackedIdList(state.idList.clone(), false);
 
   if (mutation.name === "insert") {
@@ -395,7 +397,7 @@ export function applyClientMutation(state, mutation) {
   };
 }
 
-export function applyIdListUpdates(idList, updates) {
+export function applyIdListUpdates(idList, updates: IdListUpdate[]) {
   const trackedIds = new TrackedIdList(idList.clone(), false);
   for (const update of updates) {
     trackedIds.apply(update);
@@ -403,7 +405,7 @@ export function applyIdListUpdates(idList, updates) {
   return trackedIds.idList;
 }
 
-export function selectionToIds(idList, start, end, direction = "forward") {
+export function selectionToIds(idList, start: number, end: number, direction = "forward"): PresenceSelection {
   if (start === end) {
     return {
       type: "cursor",
@@ -419,7 +421,7 @@ export function selectionToIds(idList, start, end, direction = "forward") {
   };
 }
 
-export function selectionFromIds(selection, idList) {
+export function selectionFromIds(selection: PresenceSelection, idList) {
   try {
     if (selection.type === "cursor") {
       const index = idList.cursorIndex(selection.cursor, "left");

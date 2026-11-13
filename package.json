@@ -9,10 +9,10 @@
   ],
   "description": "Minimal self-hosted markdown editor with inline comment threads",
   "scripts": {
-    "dev": "npm run build:client && (tsc -p client --watch --preserveWatchOutput & tsx watch server/server.ts)",
+    "dev": "npm run build:client && (tsc -b client --watch --preserveWatchOutput & tsx watch server/server.ts)",
     "build": "npm run build:server && npm run build:client && npm run build:cli",
-    "build:server": "tsc -p server",
-    "build:client": "tsc -p client && node -e \"require('fs').copyFileSync('client/styles.css', 'dist/public/styles.css')\"",
+    "build:server": "tsc -b server",
+    "build:client": "tsc -b client && node -e \"require('fs').copyFileSync('client/styles.css', 'dist/public/styles.css')\"",
     "build:cli": "tsc -p cli",
     "start": "node dist/server/server.js",
     "test": "npm run test:unit && npm run test:convergence && npm run test:protocol",

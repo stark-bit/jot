@@ -7,7 +7,13 @@
     "rootDir": ".",
     "outDir": "../dist/public",
     "strict": false,
-    "types": []
+    "types": [],
+    "tsBuildInfoFile": "../dist/types/client.tsbuildinfo"
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*.ts"],
+  "references": [
+    {
+      "path": "../shared"
+    }
+  ]
 }
