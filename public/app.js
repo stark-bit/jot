@@ -578,13 +578,15 @@
       }
     };
 
+    const openPreview = () => {
+      if (document.getElementById("previewStage") && !isPreviewOpen()) {
+        showPreview();
+        history.pushState({ preview: true }, "");
+      }
+    };
+
     if (previewFab) {
-      previewFab.addEventListener("click", () => {
-        if (document.getElementById("previewStage") && !isPreviewOpen()) {
-          showPreview();
-          history.pushState({ preview: true }, "");
-        }
-      });
+      previewFab.addEventListener("click", openPreview);
     }
 
     window.addEventListener("popstate", () => {
@@ -606,33 +608,17 @@
       previewCloseButton.addEventListener("click", closePreview);
     }
 
-    // Swipe right to close preview on mobile
-    {
-      let touchStartX = 0;
-      let touchStartY = 0;
-      const previewStage = document.getElementById("previewStage");
-      if (previewStage) {
-        previewStage.addEventListener(
-          "touchstart",
-          (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-          },
-          { passive: true },
-        );
-        previewStage.addEventListener(
-          "touchend",
-          (e) => {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-            if (dx > 80 && dy < 100 && isPreviewOpen()) {
-              closePreview();
-            }
-          },
-          { passive: true },
-        );
-      }
+    // Mobile swipes: left on the editor opens the preview, right on the preview
+    // closes it. Both go through the same paths as the buttons, so history
+    // stays consistent.
+    if (previewFab) {
+      onHorizontalSwipe(document.querySelector(".editor-pane"), "left", () => {
+        if (isNarrow()) openPreview();
+      });
     }
+    onHorizontalSwipe(document.getElementById("previewStage"), "right", () => {
+      if (isPreviewOpen()) closePreview();
+    });
 
     if (previewCanvas)
       previewCanvas.addEventListener("click", (event) => {
@@ -869,6 +855,53 @@
         syncThreadLayout(refsArg);
       }, 150);
     }
+  }
+
+  // Calls onSwipe for a quick single-finger horizontal swipe on element.
+  // Ignored: swipes starting in the screen-edge zone (Android back gesture),
+  // slow drags (long-press text selection), and swipes that leave a selection.
+  function hasTextSelection() {
+    const active = document.activeElement;
+    if (active instanceof HTMLTextAreaElement && active.selectionStart !== active.selectionEnd) {
+      return true;
+    }
+    return Boolean(window.getSelection()?.toString());
+  }
+
+  function onHorizontalSwipe(element, direction, onSwipe) {
+    if (!element) return;
+    // Declared here, not at module top level: the page init above returns
+    // before top-level consts below it are initialized.
+    const SWIPE_MIN_DX = 80;
+    const SWIPE_MAX_DY = 100;
+    const SWIPE_MAX_MS = 500;
+    const SWIPE_EDGE_PX = 24;
+    let start = null;
+    element.addEventListener(
+      "touchstart",
+      (e) => {
+        const touch = e.touches[0];
+        const nearEdge = touch.clientX < SWIPE_EDGE_PX || touch.clientX > window.innerWidth - SWIPE_EDGE_PX;
+        start = e.touches.length === 1 && !nearEdge ? { x: touch.clientX, y: touch.clientY, t: e.timeStamp } : null;
+      },
+      { passive: true },
+    );
+    element.addEventListener(
+      "touchend",
+      (e) => {
+        if (!start) return;
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - start.x;
+        const dy = Math.abs(touch.clientY - start.y);
+        const elapsed = e.timeStamp - start.t;
+        start = null;
+        const distance = direction === "left" ? -dx : dx;
+        if (distance > SWIPE_MIN_DX && dy < SWIPE_MAX_DY && elapsed < SWIPE_MAX_MS && !hasTextSelection()) {
+          onSwipe();
+        }
+      },
+      { passive: true },
+    );
   }
 
   // Proportional editor -> preview scroll sync, desktop side-by-side only.
