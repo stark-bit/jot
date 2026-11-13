@@ -616,6 +616,89 @@ textarea:focus {
   height: calc(var(--app-height, 100svh) - var(--toolbar-height));
   overflow: hidden;
 }
+/* --- Note sidebar (owner editor) --- */
+.note-sidebar,
+.note-sidebar-backdrop {
+  display: none;
+}
+.workspace.sidebar-pinned {
+  grid-template-columns: 240px 1fr 1fr;
+}
+.workspace.sidebar-pinned .note-sidebar {
+  display: flex;
+}
+.note-sidebar {
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--topbar-bg);
+  border-right: 1px solid var(--line);
+}
+.note-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.note-sidebar-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.35rem;
+}
+.note-sidebar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+.note-sidebar-item:hover {
+  background: var(--hover-bg);
+}
+.note-sidebar-item.active {
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+.note-sidebar-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-sidebar-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.note-sidebar-snippet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.note-sidebar-meta {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted-2);
+}
+.note-sidebar-empty {
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .editor-pane {
   border-right: 1px solid var(--line);
   background: var(--editor-bg);
@@ -1283,6 +1366,46 @@ textarea:focus {
 @media (max-width: 980px) {
   .workspace {
     grid-template-columns: 1fr;
+  }
+
+  /* Note sidebar becomes a drawer, opened by swipe right or the button */
+  .workspace.sidebar-pinned {
+    grid-template-columns: 1fr;
+  }
+  .workspace .note-sidebar {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(82vw, 300px);
+    height: 100vh;
+    height: 100svh;
+    height: var(--app-height, 100svh);
+    z-index: 46;
+    transform: translateX(-100%);
+    transition: transform 250ms ease;
+  }
+  .workspace.drawer-open .note-sidebar {
+    transform: translateX(0);
+    box-shadow: var(--shadow);
+  }
+  .workspace .note-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease;
+  }
+  .workspace.drawer-open .note-sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .note-sidebar-item {
+    padding: 0.7rem 0.6rem;
+    font-size: 0.95rem;
   }
   .editor-pane {
     border-right: 0;

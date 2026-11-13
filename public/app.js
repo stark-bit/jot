@@ -388,6 +388,8 @@
     const commentFab = document.getElementById("commentFab");
     const previewFab = document.getElementById("previewFab");
     const previewCloseButton = document.getElementById("previewCloseButton");
+    // Replaced by the note sidebar setup below when the sidebar exists.
+    let syncSidebarTitle = () => {};
 
     const refs = {
       previewScroll,
@@ -511,6 +513,7 @@
           return;
         }
         state.note.title = titleInput.value;
+        syncSidebarTitle(titleInput.value);
         clearTimeout(titleSaveTimer);
         titleSaveTimer = setTimeout(async () => {
           await api(`/api/notes/${noteId}`, {
@@ -589,7 +592,148 @@
       previewFab.addEventListener("click", openPreview);
     }
 
+    // Note sidebar (owner editor only). Desktop: a column toggled by the
+    // topbar button, remembered in localStorage. Narrow: an overlay drawer
+    // that follows the same history pattern as the preview overlay.
+    const workspace = document.getElementById("workspace");
+    const noteSidebar = document.getElementById("noteSidebar");
+    const noteSidebarList = document.getElementById("noteSidebarList");
+    const sidebarButton = document.getElementById("sidebarButton");
+    const sidebarSortButton = document.getElementById("sidebarSortButton");
+    const isDrawerOpen = () => workspace?.classList.contains("drawer-open") ?? false;
+    const showDrawer = () => workspace?.classList.add("drawer-open");
+    const hideDrawer = () => workspace?.classList.remove("drawer-open");
+    const openDrawer = () => {
+      if (noteSidebar && !isDrawerOpen()) {
+        showDrawer();
+        history.pushState({ drawer: true }, "");
+      }
+    };
+    const closeDrawer = () => {
+      if (history.state?.drawer) {
+        history.back();
+      } else {
+        hideDrawer();
+      }
+    };
+
+    if (noteSidebar && workspace) {
+      let sidebarNotes = [];
+      let sidebarSort = localStorage.getItem("jot_sidebar_sort") === "title" ? "title" : "recent";
+      workspace.classList.toggle("sidebar-pinned", localStorage.getItem("jot_sidebar_pinned") === "1");
+
+      // Back/forward onto a drawer entry from another note: reopen it.
+      if (history.state?.drawer) {
+        if (isNarrow()) showDrawer();
+        else history.replaceState(null, "");
+      }
+
+      const renderSidebar = () => {
+        if (sidebarSortButton) {
+          const btn = sidebarSortButton.querySelector("button") || sidebarSortButton;
+          btn.textContent = sidebarSort === "title" ? "a–z" : "recent";
+          btn.title = sidebarSort === "title" ? "Sorted by title" : "Sorted by last edited";
+        }
+        const sorted = [...sidebarNotes];
+        if (sidebarSort === "title") {
+          sorted.sort((a, b) =>
+            (a.title || "untitled").localeCompare(b.title || "untitled", undefined, { sensitivity: "base" }),
+          );
+        }
+        noteSidebarList.innerHTML = sorted.length
+          ? sorted
+              .map(
+                (note) => `
+                  <a class="note-sidebar-item${note.id === noteId ? " active" : ""}" href="/notes/${encodeURIComponent(note.id)}" data-note-id="${escapeHtml(note.id)}"${note.id === noteId ? ' aria-current="page"' : ""}>
+                    <span class="note-sidebar-row">
+                      <span class="note-sidebar-title">${escapeHtml(note.title || "untitled")}</span>
+                      <span class="note-sidebar-meta">${escapeHtml(formatRelativeTime(note.updatedAt))}</span>
+                    </span>
+                    <span class="note-sidebar-snippet">${escapeHtml(note.snippet || "Empty note")}</span>
+                  </a>`,
+              )
+              .join("")
+          : `<div class="note-sidebar-empty">No notes.</div>`;
+      };
+
+      api("/api/notes")
+        .then((payload) => {
+          sidebarNotes = payload.notes || [];
+          renderSidebar();
+        })
+        .catch((error) => {
+          console.error(error);
+          noteSidebarList.innerHTML = `<div class="note-sidebar-empty">Failed to load notes.</div>`;
+        });
+
+      if (sidebarButton) {
+        sidebarButton.addEventListener("click", () => {
+          if (isNarrow()) {
+            openDrawer();
+            return;
+          }
+          const pinned = workspace.classList.toggle("sidebar-pinned");
+          localStorage.setItem("jot_sidebar_pinned", pinned ? "1" : "0");
+          scheduleLayout(refs);
+        });
+      }
+
+      if (sidebarSortButton) {
+        sidebarSortButton.addEventListener("click", () => {
+          sidebarSort = sidebarSort === "title" ? "recent" : "title";
+          localStorage.setItem("jot_sidebar_sort", sidebarSort);
+          renderSidebar();
+        });
+      }
+
+      document.getElementById("sidebarNewButton")?.addEventListener("click", async () => {
+        const payload = await api("/api/notes", { method: "POST" });
+        window.location.href = `/notes/${payload.note.id}`;
+      });
+
+      noteSidebarList.addEventListener("click", (event) => {
+        const item = event.target.closest(".note-sidebar-item");
+        if (item?.classList.contains("active")) {
+          event.preventDefault();
+          if (isDrawerOpen()) closeDrawer();
+        }
+      });
+
+      document.getElementById("noteSidebarBackdrop")?.addEventListener("click", closeDrawer);
+
+      // Keep the current note's entry in sync with title edits.
+      syncSidebarTitle = (title) => {
+        const current = sidebarNotes.find((note) => note.id === noteId);
+        if (current && current.title !== title) {
+          current.title = title;
+          renderSidebar();
+        }
+      };
+
+      // Mobile swipes: right on the editor opens the drawer, left on the
+      // drawer closes it.
+      onHorizontalSwipe(document.querySelector(".editor-pane"), "right", () => {
+        if (isNarrow() && !isPreviewOpen()) openDrawer();
+      });
+      onHorizontalSwipe(noteSidebar, "left", () => {
+        if (isDrawerOpen()) closeDrawer();
+      });
+    }
+
     window.addEventListener("popstate", () => {
+      const drawerWasOpen = isDrawerOpen();
+      if (history.state?.drawer && isNarrow()) {
+        // Forward navigation back onto the drawer entry.
+        showDrawer();
+        return;
+      }
+      hideDrawer();
+      if (drawerWasOpen && !isNarrow()) {
+        // Widened while the drawer was open; it was not visible.
+        history.back();
+        return;
+      }
+
       const wasOpen = isPreviewOpen();
       if (history.state?.preview && isNarrow()) {
         // Forward navigation back onto the preview entry.
@@ -784,6 +928,7 @@
           if (refsArg.titleInput && refsArg.titleInput.value !== payload.note.title) {
             refsArg.titleInput.value = payload.note.title;
           }
+          syncSidebarTitle(payload.note.title);
           setPreviewHtml(refsArg, payload.note.renderedHtml || "");
         }
       }
@@ -921,6 +1066,7 @@
         <header class="topbar">
           <div class="topbar-left">
             <jot-icon-button icon="back" label="Back to notes" id="notesButton"></jot-icon-button>
+            <jot-icon-button icon="sidebar" label="Toggle note list" id="sidebarButton"></jot-icon-button>
             <input id="titleInput" class="title-input" type="text" spellcheck="false" value="untitled" />
             <span class="status-text" id="saveStatus"></span>
           </div>
@@ -934,7 +1080,15 @@
             <button type="button" class="jot-btn-icon jot-btn-icon--md theme-toggle" aria-label="Toggle theme">${themeIcon(document.documentElement.getAttribute("data-theme") || "dark")}</button>
           </div>
         </header>
-        <main class="workspace">
+        <main class="workspace" id="workspace">
+          <aside class="note-sidebar" id="noteSidebar">
+            <div class="note-sidebar-header">
+              <jot-button variant="ghost" size="sm" id="sidebarSortButton">recent</jot-button>
+              <jot-icon-button icon="plus" label="New note" id="sidebarNewButton" size="sm"></jot-icon-button>
+            </div>
+            <nav class="note-sidebar-list" id="noteSidebarList"></nav>
+          </aside>
+          <div class="note-sidebar-backdrop" id="noteSidebarBackdrop"></div>
           <section class="editor-pane">
             <div id="disconnectedBanner" class="editor-disconnected hidden">Disconnected. Reconnecting...</div>
             <textarea id="editorTextarea" class="editor-textarea" spellcheck="false"></textarea>
