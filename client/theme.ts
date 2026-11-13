@@ -8,14 +8,10 @@
   var moonSvg =
     '<svg viewBox="0 0 16 16" width="16" height="16"><path d="M14 9.2A5.8 5.8 0 0 1 6.8 2 6.5 6.5 0 1 0 14 9.2Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 
-  // TODO(ts): TS2339 Property '__themeIcon' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   window.__themeIcon = function (theme) {
     return theme === "dark" ? sunSvg : moonSvg;
   };
 
-  // TODO(ts): TS2339 Property '__toggleTheme' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   window.__toggleTheme = function () {
     var current = document.documentElement.getAttribute("data-theme") || "dark";
     var next = current === "dark" ? "light" : "dark";
@@ -23,15 +19,9 @@
     localStorage.setItem("md_theme", next);
     var buttons = document.querySelectorAll(".theme-toggle");
     for (var i = 0; i < buttons.length; i++) {
-      // TODO(ts): TS2339 Property '__themeIcon' does not exist on type 'Window & typeof globalThis'.
-      // @ts-expect-error
       buttons[i].innerHTML = window.__themeIcon(next);
     }
-    // TODO(ts): TS2339 Property '__mermaid' does not exist on type 'Window & typeof globalThis'.
-    // @ts-expect-error
     if (window.__mermaid) {
-      // TODO(ts): TS2339 Property '__mermaid' does not exist on type 'Window & typeof globalThis'.
-      // @ts-expect-error
       window.__mermaid.initialize({ startOnLoad: false, theme: next === "light" ? "default" : "dark" });
       var container = document.getElementById("previewContent");
       if (container) {
@@ -44,11 +34,7 @@
             wrap.remove();
           }
         });
-        // TODO(ts): TS2339 Property '__clearMermaidCache' does not exist on type 'Window & typeof globalThis'.
-        // @ts-expect-error
         if (window.__clearMermaidCache) window.__clearMermaidCache();
-        // TODO(ts): TS2339 Property '__renderMermaid' does not exist on type 'Window & typeof globalThis'.
-        // @ts-expect-error
         if (window.__renderMermaid) window.__renderMermaid(container);
       }
     }
@@ -58,8 +44,6 @@
     // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
     // @ts-expect-error
     if (event.target.closest && event.target.closest(".theme-toggle")) {
-      // TODO(ts): TS2339 Property '__toggleTheme' does not exist on type 'Window & typeof globalThis'.
-      // @ts-expect-error
       window.__toggleTheme();
     }
   });

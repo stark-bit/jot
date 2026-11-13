@@ -3,8 +3,6 @@
 export {};
 
 (() => {
-  // TODO(ts): TS2339 Property '__OWNER_TOKEN_KEY__' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   const ownerTokenKey = window.__OWNER_TOKEN_KEY__ || "md_owner_token";
   const app = document.getElementById("app");
   const page = document.body.dataset.page;
@@ -28,8 +26,6 @@ export {};
     syncAppHeight();
   }
 
-  // TODO(ts): TS2339 Property '__themeIcon' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   const themeIcon = window.__themeIcon || ((t) => (t === "dark" ? "☀" : "☾"));
 
   let mermaidIdCounter = 0;
@@ -49,8 +45,6 @@ export {};
     svgBtn("zoom-out", '<circle cx="8" cy="8" r="5.5"/><path d="M5.5 8h5"/>');
 
   async function renderMermaid(container) {
-    // TODO(ts): TS2339 Property '__mermaid' does not exist on type 'Window & typeof globalThis'.
-    // @ts-expect-error
     const m = window.__mermaid;
     if (!m || !container) return;
     // TODO(ts): TS2339 Property 'textContent' does not exist on type 'unknown'.
@@ -137,11 +131,7 @@ export {};
     }
     mermaidCache = newCache;
   }
-  // TODO(ts): TS2339 Property '__renderMermaid' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   window.__renderMermaid = renderMermaid;
-  // TODO(ts): TS2339 Property '__clearMermaidCache' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   window.__clearMermaidCache = () => {
     mermaidCache = [];
   };
@@ -508,8 +498,6 @@ export {};
 
     function initCollabEditor() {
       if (!editorTextarea) return;
-      // TODO(ts): TS2339 Property '__STATIC_VERSION__' does not exist on type 'Window & typeof globalThis'.
-      // @ts-expect-error
       const sv = window.__STATIC_VERSION__;
       import("/static/collab-editor.js" + (sv ? "?v=" + encodeURIComponent(sv) : "")).then(({ createCollabEditor }) => {
         createCollabEditor(editorTextarea, {
@@ -2290,16 +2278,10 @@ export {};
     window.location.href = "/login";
   }
 
-  async function api(url, options = {}) {
+  async function api(url: string, options: { method?: string; body?: unknown } = {}) {
     const response = await fetch(url, {
-      // TODO(ts): TS2339 Property 'method' does not exist on type '{}'.
-      // @ts-expect-error
       method: options.method || "GET",
-      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
-      // @ts-expect-error
       headers: options.body ? { "Content-Type": "application/json" } : undefined,
-      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
-      // @ts-expect-error
       body: options.body ? JSON.stringify(options.body) : undefined,
       credentials: "same-origin",
     });

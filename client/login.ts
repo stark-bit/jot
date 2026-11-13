@@ -4,8 +4,6 @@ export {};
 
 (() => {
   const mode = document.body.dataset.authMode;
-  // TODO(ts): TS2339 Property '__OWNER_TOKEN_KEY__' does not exist on type 'Window & typeof globalThis'.
-  // @ts-expect-error
   const ownerTokenKey = window.__OWNER_TOKEN_KEY__ || "md_owner_token";
   const form = document.getElementById("auth-form");
   const errorNode = document.getElementById("auth-error");
@@ -54,16 +52,10 @@ export {};
     }
   }
 
-  async function api(url, options = {}) {
+  async function api(url: string, options: { method?: string; body?: unknown } = {}) {
     const response = await fetch(url, {
-      // TODO(ts): TS2339 Property 'method' does not exist on type '{}'.
-      // @ts-expect-error
       method: options.method || "GET",
-      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
-      // @ts-expect-error
       headers: options.body ? { "Content-Type": "application/json" } : undefined,
-      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
-      // @ts-expect-error
       body: options.body ? JSON.stringify(options.body) : undefined,
       credentials: "same-origin",
     });
