@@ -254,6 +254,21 @@ export function createCollabEditor(textarea, opts) {
     renderRemoteCursors();
   }
 
+  // Programmatic value/selection writes don't auto-scroll the caret into view
+  // (notably on mobile with the keyboard up), so do it ourselves after local edits.
+  function ensureCaretVisible() {
+    if (document.activeElement !== textarea) return;
+    const idx = textarea.selectionDirection === "backward" ? textarea.selectionStart : textarea.selectionEnd;
+    const pos = measureCaretPositions(textarea, mirror, [idx]).get(idx);
+    if (!pos) return;
+    const cs = getComputedStyle(textarea);
+    const lineHeight = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    // Keep one extra line of breathing room below the caret.
+    const overflowBottom = pos.top + lineHeight * 2 - textarea.clientHeight;
+    if (overflowBottom > 0) textarea.scrollTop += overflowBottom;
+    else if (pos.top < 0) textarea.scrollTop += pos.top;
+  }
+
   function renderRemoteCursors() {
     overlay.innerHTML = "";
     if (!initialized) return;
@@ -343,6 +358,7 @@ export function createCollabEditor(textarea, opts) {
       pendingMutations.push(m);
     }
     render(sel);
+    ensureCaretVisible();
     if (ws && ws.readyState === WebSocket.OPEN && clientId) {
       ws.send(JSON.stringify({ type: "mutation", clientId, mutations }));
     }
