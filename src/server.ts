@@ -2131,10 +2131,16 @@ function listApiKeys() {
   return auth.apiKeys.map((k) => ({ id: k.id, label: k.label, createdAt: k.createdAt }));
 }
 
+// Commenter ids are issued by getOrCreateCommenterId as 24 random bytes in
+// base64url (32 chars). Anything else is forged, e.g. the reserved "__owner__"
+// author id, and is treated as no identity.
+const commenterIdPattern = /^[A-Za-z0-9_-]{32}$/;
+
 function getCommenterIdentityFromHeaders(headers: http.IncomingHttpHeaders) {
   const cookies = parseCookies(headerValue(headers.cookie));
+  const id = cookies[commenterIdCookieName];
   return {
-    id: cookies[commenterIdCookieName] || null,
+    id: id && commenterIdPattern.test(id) ? id : null,
     name: cookies[commenterNameCookieName] || null,
   };
 }

@@ -281,7 +281,22 @@ describe("comment permissions for visitors", () => {
     expect(edit.status).toBe(403);
     const remove = await anon(`/api/share/${shareId}/messages/${messageId}`, { method: "DELETE", cookie: forged });
     expect(remove.status).toBe(403);
-    expect((await threadMessages(id))[0]?.messages[0].body).toBe("owner wrote this");
+    const resolve = await anon(`/api/share/${shareId}/threads/${thread.id}`, {
+      method: "PATCH",
+      cookie: forged,
+      body: { resolved: true },
+    });
+    expect(resolve.status).toBe(403);
+
+    const asSeen = (await (await anon(`/api/share/${shareId}/note`, { cookie: forged })).json()) as {
+      threads: { resolved: boolean; messages: { body: string; canEdit: boolean; canDelete: boolean }[] }[];
+    };
+    expect(asSeen.threads[0].resolved).toBe(false);
+    expect(asSeen.threads[0].messages[0]).toMatchObject({
+      body: "owner wrote this",
+      canEdit: false,
+      canDelete: false,
+    });
   });
 });
 
