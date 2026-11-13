@@ -20,13 +20,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const collabModule = process.env.JOT_COLLAB_MODULE || path.join(here, "../../src/collab");
 const collab = await import(path.resolve(collabModule));
 
-const {
-  applyClientMutations,
-  collabFromMarkdown,
-  collabToMarkdown,
-  loadCollabState,
-  saveCollabState,
-} = collab as typeof import("../../src/collab");
+const { applyClientMutations, collabFromMarkdown, collabToMarkdown, loadCollabState, saveCollabState } =
+  collab as typeof import("../../src/collab");
 
 type Args = {
   seeds: number;
@@ -227,7 +222,7 @@ function runSeed(seed: number, args: Args) {
     if (rebuilt !== finalText) {
       throw new Error(
         `seed ${seed} ${label}: text does not match tracked characters\n` +
-        `expected: ${JSON.stringify(rebuilt)}\nactual:   ${JSON.stringify(finalText)}`,
+          `expected: ${JSON.stringify(rebuilt)}\nactual:   ${JSON.stringify(finalText)}`,
       );
     }
 
@@ -261,9 +256,7 @@ function runSeed(seed: number, args: Args) {
   // deliberately not modeled: deletes have no engine-level dedup, their
   // protection lives entirely in the server's ack layer.)
   let replayed: CollabState = loadCollabState(saveCollabState(state));
-  const inserts = messages
-    .map((message) => message.mutations.filter((m) => m.name === "insert"))
-    .flat();
+  const inserts = messages.map((message) => message.mutations.filter((m) => m.name === "insert")).flat();
   for (let round = 0; round < 2; round++) {
     for (const mutation of inserts) {
       replayed = applyClientMutations(replayed, [mutation]).state;
@@ -272,7 +265,7 @@ function runSeed(seed: number, args: Args) {
     if (replayText !== liveText) {
       throw new Error(
         `seed ${seed} insert replay round ${round}: text changed\n` +
-        `before: ${JSON.stringify(liveText)}\nafter:  ${JSON.stringify(replayText)}`,
+          `before: ${JSON.stringify(liveText)}\nafter:  ${JSON.stringify(replayText)}`,
       );
     }
   }
@@ -303,7 +296,9 @@ function main() {
     console.error(`convergence harness FAILED: ${failures} corrupt seeds out of ${ran} (${seconds}s)`);
     process.exit(1);
   }
-  console.log(`convergence harness OK: ${ran} seeds, ${args.ops} ops, ${args.clients} clients, zero corruption (${seconds}s)`);
+  console.log(
+    `convergence harness OK: ${ran} seeds, ${args.ops} ops, ${args.clients} clients, zero corruption (${seconds}s)`,
+  );
 }
 
 main();

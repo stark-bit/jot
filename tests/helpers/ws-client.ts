@@ -92,9 +92,7 @@ export class FakeWsClient {
     predicate?: (message: ServerMessage) => boolean,
     timeoutMs = 5000,
   ): Promise<ServerMessage> {
-    const matches = this.inbox.filter(
-      (message) => message.type === type && (!predicate || predicate(message)),
-    );
+    const matches = this.inbox.filter((message) => message.type === type && (!predicate || predicate(message)));
     if (matches.length > 0) {
       return matches[0];
     }
@@ -102,9 +100,11 @@ export class FakeWsClient {
       const timer = setTimeout(() => {
         const index = this.waiters.findIndex((w) => w.timer === timer);
         if (index !== -1) this.waiters.splice(index, 1);
-        reject(new Error(
-          `timed out after ${timeoutMs}ms waiting for ${type}; received: ${this.inbox.map((m) => m.type).join(",") || "nothing"}`,
-        ));
+        reject(
+          new Error(
+            `timed out after ${timeoutMs}ms waiting for ${type}; received: ${this.inbox.map((m) => m.type).join(",") || "nothing"}`,
+          ),
+        );
       }, timeoutMs);
       this.waiters.push({
         predicate: (message) => message.type === type && (!predicate || predicate(message)),

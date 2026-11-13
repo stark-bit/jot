@@ -16,10 +16,14 @@ async function openEditor(noteId: string, initial: string): Promise<Page> {
   const page = await context.newPage();
   await page.goto(`${server.baseUrl}/notes/${noteId}`);
   await page.waitForSelector("#editorTextarea");
-  await page.waitForFunction(() => {
-    const textarea = document.querySelector("#editorTextarea") as HTMLTextAreaElement | null;
-    return Boolean(textarea && !textarea.readOnly);
-  }, undefined, { timeout: 20000 });
+  await page.waitForFunction(
+    () => {
+      const textarea = document.querySelector("#editorTextarea") as HTMLTextAreaElement | null;
+      return Boolean(textarea && !textarea.readOnly);
+    },
+    undefined,
+    { timeout: 20000 },
+  );
   await page.waitForFunction(
     (expected) => (document.querySelector("#editorTextarea") as HTMLTextAreaElement).value === expected,
     initial,
@@ -62,11 +66,13 @@ function noteMarkdownPath(noteId: string): string {
 test.beforeAll(async ({ browser }) => {
   server = await getSharedServer();
   context = await browser.newContext();
-  await context.addCookies([{
-    name: "md_owner_session",
-    value: server.ownerCookie.split("=")[1],
-    url: server.baseUrl,
-  }]);
+  await context.addCookies([
+    {
+      name: "md_owner_session",
+      value: server.ownerCookie.split("=")[1],
+      url: server.baseUrl,
+    },
+  ]);
 });
 
 test.afterAll(async () => {
@@ -124,9 +130,11 @@ test.describe("two-tab collab editing", () => {
 
   test("markdown on disk stays current after live edits", async () => {
     const expected = "Hello alpha beta gamma\ndelta epsilon\nworld";
-    await expect.poll(() => fs.readFileSync(noteMarkdownPath(noteId), "utf8"), {
-      timeout: 10000,
-    }).toBe(expected);
+    await expect
+      .poll(() => fs.readFileSync(noteMarkdownPath(noteId), "utf8"), {
+        timeout: 10000,
+      })
+      .toBe(expected);
   });
 
   test("cursor stays stable while remote updates arrive", async () => {
@@ -174,15 +182,18 @@ test.describe("two-tab collab editing", () => {
     await setCursor(editorB, "one two three four\n".length);
 
     // Interleave A's prepend with B's destructive edits at the other end.
-    const paste = () => editorB.evaluate(() => {
-      const textarea = document.querySelector("#editorTextarea") as HTMLTextAreaElement;
-      textarea.dispatchEvent(new InputEvent("beforeinput", {
-        inputType: "insertFromPaste",
-        data: "PASTED",
-        bubbles: true,
-        cancelable: true,
-      }));
-    });
+    const paste = () =>
+      editorB.evaluate(() => {
+        const textarea = document.querySelector("#editorTextarea") as HTMLTextAreaElement;
+        textarea.dispatchEvent(
+          new InputEvent("beforeinput", {
+            inputType: "insertFromPaste",
+            data: "PASTED",
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+      });
 
     for (let i = 0; i < 4; i++) {
       if (i === 0) await editorB.keyboard.press("Backspace");
@@ -211,11 +222,16 @@ test.describe("two-tab collab editing", () => {
     await editorA.keyboard.type("AA");
     await editorB.keyboard.type("BB");
 
-    await expect.poll(async () => {
-      const a = await valueOf(editorA);
-      const b = await valueOf(editorB);
-      return a === b ? a : "";
-    }, { timeout: 15000 }).toMatch(/^tar(AABB|BBAA)get$/);
+    await expect
+      .poll(
+        async () => {
+          const a = await valueOf(editorA);
+          const b = await valueOf(editorB);
+          return a === b ? a : "";
+        },
+        { timeout: 15000 },
+      )
+      .toMatch(/^tar(AABB|BBAA)get$/);
     editorA.close();
     editorB.close();
   });
@@ -246,16 +262,12 @@ test.describe("CLI round-trip", () => {
       const search = await runCli(["e2e", "search", "cli world"], home);
       expect(search.stdout).toContain(noteId);
 
-      const edit = await runCli(
-        ["e2e", "edit", noteId, JSON.stringify([{ oldText: "cli", newText: "CLI!" }])],
-        home,
-      );
+      const edit = await runCli(["e2e", "edit", noteId, JSON.stringify([{ oldText: "cli", newText: "CLI!" }])], home);
       expect(edit.code).toBe(0);
       expect(edit.stdout).toContain("Saved at");
       const readEdited = await runCli(["e2e", "read", noteId], home);
       expect(readEdited.stdout).toContain("hello CLI! world");
-      await expect.poll(() => fs.readFileSync(noteMarkdownPath(noteId), "utf8"))
-        .toBe("hello CLI! world");
+      await expect.poll(() => fs.readFileSync(noteMarkdownPath(noteId), "utf8")).toBe("hello CLI! world");
 
       const comment = await runCli(["e2e", "comment", noteId, "hello", "looks good"], home);
       expect(comment.code).toBe(0);

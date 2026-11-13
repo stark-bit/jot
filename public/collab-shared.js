@@ -286,11 +286,12 @@ export function applyClientMutation(state, mutation) {
   }
 
   const startIndex = trackedIds.idList.indexOf(startId, "right");
-  const endIndex = endId === undefined
-    ? startIndex
-    : trackedIds.idList.isKnown(endId)
-      ? trackedIds.idList.indexOf(endId, "left")
-      : startIndex - 1;
+  const endIndex =
+    endId === undefined
+      ? startIndex
+      : trackedIds.idList.isKnown(endId)
+        ? trackedIds.idList.indexOf(endId, "left")
+        : startIndex - 1;
 
   if (endIndex < startIndex) {
     return state;

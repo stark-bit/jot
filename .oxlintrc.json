@@ -1,12 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "typescript",
-    "unicorn",
-    "oxc",
-    "import",
-    "vitest"
-  ],
+  "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
@@ -19,30 +13,20 @@
     "no-underscore-dangle": "off",
     "unicorn/no-array-sort": "off",
     "unicorn/prefer-add-event-listener": "off",
-    "unicorn/no-useless-spread": "off"
+    "unicorn/no-useless-spread": "off",
+    "no-unused-vars": "warn",
+    "unicorn/no-useless-fallback-in-spread": "warn"
   },
-  "ignorePatterns": [
-    "dist/**",
-    "data/**",
-    "test-results/**",
-    "playwright-report/**"
-  ],
+  "ignorePatterns": ["dist/**", "data/**", "test-results/**", "playwright-report/**"],
   "overrides": [
     {
-      "files": [
-        "public/**/*.js"
-      ],
+      "files": ["public/**/*.js"],
       "env": {
         "browser": true
       }
     },
     {
-      "files": [
-        "src/**/*.ts",
-        "cli/**/*.mjs",
-        "tests/**/*.{ts,mts}",
-        "*.config.ts"
-      ],
+      "files": ["src/**/*.ts", "cli/**/*.mjs", "tests/**/*.{ts,mts}", "*.config.ts"],
       "env": {
         "node": true
       }

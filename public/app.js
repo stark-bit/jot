@@ -9,28 +9,36 @@
     return;
   }
 
-  const isMobileDevice = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  const isMobileDevice =
+    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
     (navigator.userAgent.includes("Mac") && "ontouchstart" in window && navigator.maxTouchPoints > 1);
 
   // Track the keyboard-shrunk visual viewport height.
   const vv = window.visualViewport;
   if (vv) {
-    const syncAppHeight = () =>
-      document.documentElement.style.setProperty("--app-height", vv.height + "px");
+    const syncAppHeight = () => document.documentElement.style.setProperty("--app-height", vv.height + "px");
     vv.addEventListener("resize", syncAppHeight);
     vv.addEventListener("scroll", syncAppHeight);
     syncAppHeight();
   }
 
-  const themeIcon = window.__themeIcon || ((t) => t === "dark" ? "☀" : "☾");
+  const themeIcon = window.__themeIcon || ((t) => (t === "dark" ? "☀" : "☾"));
 
   let mermaidIdCounter = 0;
   let mermaidCache = [];
-  const svgBtn = (action, d) => `<button type="button" data-action="${action}"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg></button>`;
-  const mermaidToolbarHtml = ''
-    + '<span></span>' + svgBtn('up', '<path d="M4 10l4-4 4 4"/>') + svgBtn('zoom-in', '<circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v5M5.5 8h5"/>')
-    + svgBtn('left', '<path d="M10 4l-4 4 4 4"/>') + svgBtn('reset', '<path d="M3.5 3v4h4"/><path d="M3.5 7a5.5 5.5 0 1 1 1 3.5"/>') + svgBtn('right', '<path d="M6 4l4 4-4 4"/>')
-    + '<span></span>' + svgBtn('down', '<path d="M4 6l4 4 4-4"/>') + svgBtn('zoom-out', '<circle cx="8" cy="8" r="5.5"/><path d="M5.5 8h5"/>');
+  const svgBtn = (action, d) =>
+    `<button type="button" data-action="${action}"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg></button>`;
+  const mermaidToolbarHtml =
+    "" +
+    "<span></span>" +
+    svgBtn("up", '<path d="M4 10l4-4 4 4"/>') +
+    svgBtn("zoom-in", '<circle cx="8" cy="8" r="5.5"/><path d="M8 5.5v5M5.5 8h5"/>') +
+    svgBtn("left", '<path d="M10 4l-4 4 4 4"/>') +
+    svgBtn("reset", '<path d="M3.5 3v4h4"/><path d="M3.5 7a5.5 5.5 0 1 1 1 3.5"/>') +
+    svgBtn("right", '<path d="M6 4l4 4-4 4"/>') +
+    "<span></span>" +
+    svgBtn("down", '<path d="M4 6l4 4 4-4"/>') +
+    svgBtn("zoom-out", '<circle cx="8" cy="8" r="5.5"/><path d="M5.5 8h5"/>');
 
   async function renderMermaid(container) {
     const m = window.__mermaid;
@@ -48,14 +56,16 @@
       } else {
         node.setAttribute("data-original-code", src);
         node.removeAttribute("data-processed");
-        node.id = "mermaid-" + (mermaidIdCounter++) + "-" + i;
+        node.id = "mermaid-" + mermaidIdCounter++ + "-" + i;
         toRender.push({ node, index: i });
       }
     });
 
     if (toRender.length > 0) {
       const nodes = toRender.map((t) => t.node);
-      try { await m.run({ nodes, suppressErrors: true }); } catch {}
+      try {
+        await m.run({ nodes, suppressErrors: true });
+      } catch {}
       toRender.forEach(({ node, index }) => {
         const wrap = document.createElement("div");
         wrap.className = "mermaid-wrap";
@@ -68,20 +78,34 @@
         bar.className = "mermaid-toolbar";
         bar.innerHTML = mermaidToolbarHtml;
         wrap.appendChild(bar);
-        let scale = 1, tx = 0, ty = 0;
+        let scale = 1,
+          tx = 0,
+          ty = 0;
         const step = 50;
-        function applyTransform() { node.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; }
+        function applyTransform() {
+          node.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+        }
         bar.addEventListener("click", (e) => {
           const btn = e.target.closest("[data-action]");
           if (!btn) return;
           const action = btn.dataset.action;
-          if (action === "zoom-in") { scale = Math.min(4, scale + 0.25); }
-          else if (action === "zoom-out") { scale = Math.max(0.25, scale - 0.25); }
-          else if (action === "up") { ty += step; }
-          else if (action === "down") { ty -= step; }
-          else if (action === "left") { tx += step; }
-          else if (action === "right") { tx -= step; }
-          else if (action === "reset") { scale = 1; tx = 0; ty = 0; }
+          if (action === "zoom-in") {
+            scale = Math.min(4, scale + 0.25);
+          } else if (action === "zoom-out") {
+            scale = Math.max(0.25, scale - 0.25);
+          } else if (action === "up") {
+            ty += step;
+          } else if (action === "down") {
+            ty -= step;
+          } else if (action === "left") {
+            tx += step;
+          } else if (action === "right") {
+            tx -= step;
+          } else if (action === "reset") {
+            scale = 1;
+            tx = 0;
+            ty = 0;
+          }
           applyTransform();
         });
         newCache[index] = { src: node.getAttribute("data-original-code"), wrap };
@@ -90,7 +114,9 @@
     mermaidCache = newCache;
   }
   window.__renderMermaid = renderMermaid;
-  window.__clearMermaidCache = () => { mermaidCache = []; };
+  window.__clearMermaidCache = () => {
+    mermaidCache = [];
+  };
 
   function setPreviewHtml(refs, html) {
     if (!refs.previewContent) return;
@@ -99,7 +125,12 @@
   }
 
   const shareAccess = document.body.dataset.shareAccess || "";
-  const ACTION_ICON_MAP = { reply: "reply", "edit-message": "edit", "delete-message": "trash", "delete-thread": "trash" };
+  const ACTION_ICON_MAP = {
+    reply: "reply",
+    "edit-message": "edit",
+    "delete-message": "trash",
+    "delete-thread": "trash",
+  };
 
   const state = {
     page,
@@ -183,7 +214,8 @@
     });
 
     noteList.addEventListener("click", async (event) => {
-      const deleteBtn = event.target.closest(".note-delete-btn") || event.target.closest("jot-icon-button.note-delete-btn");
+      const deleteBtn =
+        event.target.closest(".note-delete-btn") || event.target.closest("jot-icon-button.note-delete-btn");
       if (deleteBtn) {
         event.stopPropagation();
         const id = deleteBtn.dataset.noteId;
@@ -226,7 +258,9 @@
       }
 
       document.getElementById("settingsClose").addEventListener("click", closeSettings);
-      listModalBackdrop.addEventListener("click", (e) => { if (e.target === listModalBackdrop) closeSettings(); });
+      listModalBackdrop.addEventListener("click", (e) => {
+        if (e.target === listModalBackdrop) closeSettings();
+      });
 
       createKeyButton.addEventListener("click", async () => {
         const label = prompt("Label for this API key:");
@@ -237,7 +271,8 @@
       });
 
       apiKeysList.addEventListener("click", async (event) => {
-        const copyBtn = event.target.closest("[data-copy-key]") || event.target.closest("jot-icon-button[data-copy-key]");
+        const copyBtn =
+          event.target.closest("[data-copy-key]") || event.target.closest("jot-icon-button[data-copy-key]");
         if (copyBtn) {
           try {
             await navigator.clipboard.writeText(copyBtn.dataset.copyKey);
@@ -246,7 +281,8 @@
           } catch {}
           return;
         }
-        const deleteBtn = event.target.closest("[data-delete-key]") || event.target.closest("jot-icon-button[data-delete-key]");
+        const deleteBtn =
+          event.target.closest("[data-delete-key]") || event.target.closest("jot-icon-button[data-delete-key]");
         if (!deleteBtn) return;
         if (!confirm("Delete this API key?")) return;
         await api(`/api/keys/${deleteBtn.dataset.deleteKey}`, { method: "DELETE" });
@@ -256,7 +292,9 @@
       async function renderKeys() {
         const response = await api("/api/keys");
         apiKeysList.innerHTML = response.keys.length
-          ? response.keys.map((key) => `
+          ? response.keys
+              .map(
+                (key) => `
               <div class="api-key-row" data-key-id="${escapeHtml(key.id)}">
                 <div class="api-key-info">
                   <span class="api-key-label">${escapeHtml(key.label)}</span>
@@ -264,7 +302,9 @@
                 </div>
                 <jot-icon-button icon="trash" label="Delete key" data-delete-key="${escapeHtml(key.id)}" size="sm" danger></jot-icon-button>
               </div>
-            `).join("")
+            `,
+              )
+              .join("")
           : '<div class="api-keys-empty">No API keys yet.</div>';
       }
 
@@ -288,7 +328,7 @@
       const hasNotes = response.notes.length > 0;
       const hasQuery = query.trim().length > 0;
 
-      document.querySelector(".list-search-wrap").style.display = (hasNotes || hasQuery) ? "" : "none";
+      document.querySelector(".list-search-wrap").style.display = hasNotes || hasQuery ? "" : "none";
 
       if (!hasNotes && !hasQuery) {
         noteList.innerHTML = `<div class="empty-state-create"><p class="empty-state-text">No notes yet.</p><jot-button variant="primary" id="emptyCreateBtn">Create note</jot-button></div>`;
@@ -321,7 +361,11 @@
   function initNotePage(isPublic) {
     const isPublicEdit = isPublic && shareAccess === "edit";
     const isPublicView = isPublic && shareAccess === "view";
-    app.innerHTML = isPublicEdit ? renderPublicEditorLayout() : isPublic ? renderPublicLayout(isPublicView) : renderEditorLayout();
+    app.innerHTML = isPublicEdit
+      ? renderPublicEditorLayout()
+      : isPublic
+        ? renderPublicLayout(isPublicView)
+        : renderEditorLayout();
 
     const previewScroll = document.getElementById("previewScroll");
     const previewCanvas = document.getElementById("previewCanvas");
@@ -424,7 +468,7 @@
         collabEditor = createCollabEditor(editorTextarea, {
           noteId: isPublic ? undefined : noteId,
           shareId: isPublic ? shareId : undefined,
-          name: isPublic ? (state.viewer?.commenterName || "Anonymous") : "Owner",
+          name: isPublic ? state.viewer?.commenterName || "Anonymous" : "Owner",
           onReady: (payload) => {
             state.note = {
               ...(state.note || {}),
@@ -535,38 +579,47 @@
       let touchStartY = 0;
       const previewStage = document.getElementById("previewStage");
       if (previewStage) {
-        previewStage.addEventListener("touchstart", (e) => {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        previewStage.addEventListener("touchend", (e) => {
-          const dx = e.changedTouches[0].clientX - touchStartX;
-          const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-          if (dx > 80 && dy < 100) {
-            previewStage.classList.remove("preview-open");
-            if (previewFab) {
-              previewFab.style.display = "";
+        previewStage.addEventListener(
+          "touchstart",
+          (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          },
+          { passive: true },
+        );
+        previewStage.addEventListener(
+          "touchend",
+          (e) => {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+            if (dx > 80 && dy < 100) {
+              previewStage.classList.remove("preview-open");
+              if (previewFab) {
+                previewFab.style.display = "";
+              }
             }
-          }
-        }, { passive: true });
+          },
+          { passive: true },
+        );
       }
     }
 
-    if (previewCanvas) previewCanvas.addEventListener("click", (event) => {
-      if (event.target.closest(".thread-rail") || event.target.closest(".selection-bubble")) {
-        return;
-      }
-      const threadId = findAnchorAtPoint(event.clientX, event.clientY, highlightLayer);
-      if (!threadId) {
-        return;
-      }
-      const railVisible = threadRail && threadRail.offsetParent !== null;
-      if (railVisible) {
-        activateThread(threadId, refs, true);
-      } else {
-        openThreadDialog(threadId, refs, isPublic);
-      }
-    });
+    if (previewCanvas)
+      previewCanvas.addEventListener("click", (event) => {
+        if (event.target.closest(".thread-rail") || event.target.closest(".selection-bubble")) {
+          return;
+        }
+        const threadId = findAnchorAtPoint(event.clientX, event.clientY, highlightLayer);
+        if (!threadId) {
+          return;
+        }
+        const railVisible = threadRail && threadRail.offsetParent !== null;
+        if (railVisible) {
+          activateThread(threadId, refs, true);
+        } else {
+          openThreadDialog(threadId, refs, isPublic);
+        }
+      });
 
     if (commentFab) {
       commentFab.addEventListener("click", () => {
@@ -584,29 +637,29 @@
       });
     }
 
-    if (threadRail) threadRail.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-action]");
-      const card = event.target.closest("[data-thread-id]");
+    if (threadRail)
+      threadRail.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-action]");
+        const card = event.target.closest("[data-thread-id]");
 
-      if (!button && card) {
-        const threadId = card.dataset.threadId;
-        activateThread(threadId, refs, true);
-        return;
-      }
+        if (!button && card) {
+          const threadId = card.dataset.threadId;
+          activateThread(threadId, refs, true);
+          return;
+        }
 
-      if (!button || !button.dataset.action) {
-        return;
-      }
+        if (!button || !button.dataset.action) {
+          return;
+        }
 
-      const action = button.dataset.action;
-      const threadId = button.dataset.threadId;
-      const messageId = button.dataset.messageId;
-      if (!action || !threadId) {
-        return;
-      }
-      await handleThreadAction(action, threadId, messageId, refs, isPublic);
-    });
-
+        const action = button.dataset.action;
+        const threadId = button.dataset.threadId;
+        const messageId = button.dataset.messageId;
+        if (!action || !threadId) {
+          return;
+        }
+        await handleThreadAction(action, threadId, messageId, refs, isPublic);
+      });
 
     loadNote().catch((error) => {
       console.error(error);
@@ -647,10 +700,16 @@
 
       function connect() {
         ws = new WebSocket(wsUrl);
-        ws.onopen = () => { reconnectDelay = 1000; };
+        ws.onopen = () => {
+          reconnectDelay = 1000;
+        };
         ws.onmessage = (event) => {
           let msg;
-          try { msg = JSON.parse(event.data); } catch { return; }
+          try {
+            msg = JSON.parse(event.data);
+          } catch {
+            return;
+          }
           if (msg.type === "threads-updated") {
             reloadThreads(publicMode);
             return;
@@ -828,15 +887,21 @@
   }
 
   function renderPublicLayout(viewOnly) {
-    const commentControls = viewOnly ? "" : `
+    const commentControls = viewOnly
+      ? ""
+      : `
             <jot-button variant="ghost" size="sm" id="commentsButton">hide comments</jot-button>
             <jot-button variant="ghost" size="sm" id="resolvedButton">resolved</jot-button>`;
-    const commentElements = viewOnly ? "" : `
+    const commentElements = viewOnly
+      ? ""
+      : `
               <div class="highlight-layer" id="highlightLayer"></div>
               <button type="button" class="selection-bubble hidden" id="selectionBubble">+ Comment</button>
               <button type="button" class="comment-fab" id="commentFab">+ Comment</button>
               <aside class="thread-rail" id="threadRail"></aside>`;
-    const subtitle = viewOnly ? "" : `<div class="topbar-title-subtle">comments as <span id="commenterLabel">anonymous</span></div>`;
+    const subtitle = viewOnly
+      ? ""
+      : `<div class="topbar-title-subtle">comments as <span id="commenterLabel">anonymous</span></div>`;
     return `
       <div class="app-root">
         <header class="topbar public-page-topbar">
@@ -928,7 +993,10 @@
   function toggleSharePopover(refs) {
     const popover = document.getElementById("sharePopover");
     if (!popover) return;
-    if (!popover.classList.contains("hidden")) { popover.classList.add("hidden"); return; }
+    if (!popover.classList.contains("hidden")) {
+      popover.classList.add("hidden");
+      return;
+    }
     const access = state.note?.shareAccess || "none";
     const shareUrl = `${location.origin}/s/${state.note?.shareId || ""}`;
     popover.innerHTML = `
@@ -951,16 +1019,29 @@
       state.note.shareAccess = val;
       await api(`/api/notes/${state.note.id}`, { method: "PUT", body: { shareAccess: val } });
       if (val === "none") {
-        copyBtn.disabled = true; copyBtn.classList.add("share-copy-disabled");
+        copyBtn.disabled = true;
+        copyBtn.classList.add("share-copy-disabled");
       } else {
-        copyBtn.disabled = false; copyBtn.classList.remove("share-copy-disabled");
+        copyBtn.disabled = false;
+        copyBtn.classList.remove("share-copy-disabled");
       }
     });
     copyBtn.addEventListener("click", async () => {
       if (select.value === "none") return;
-      try { await navigator.clipboard.writeText(shareUrl); setButtonLabel(copyBtn, "copied!"); setTimeout(() => { setButtonLabel(copyBtn, "copy link"); }, 1500); } catch {}
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setButtonLabel(copyBtn, "copied!");
+        setTimeout(() => {
+          setButtonLabel(copyBtn, "copy link");
+        }, 1500);
+      } catch {}
     });
-    const closeHandler = (e) => { if (!popover.contains(e.target) && e.target.id !== "shareButton") { popover.classList.add("hidden"); document.removeEventListener("click", closeHandler); } };
+    const closeHandler = (e) => {
+      if (!popover.contains(e.target) && e.target.id !== "shareButton") {
+        popover.classList.add("hidden");
+        document.removeEventListener("click", closeHandler);
+      }
+    };
     setTimeout(() => document.addEventListener("click", closeHandler), 0);
   }
 
@@ -1057,9 +1138,13 @@
       </div>
     `;
 
-    const close = () => { closeModal(refs); };
+    const close = () => {
+      closeModal(refs);
+    };
     refs.modalBackdrop.querySelector("#agentModalClose").addEventListener("click", close);
-    refs.modalBackdrop.addEventListener("click", (e) => { if (e.target === refs.modalBackdrop) close(); });
+    refs.modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === refs.modalBackdrop) close();
+    });
     refs.modalBackdrop.querySelector("#agentCopyBtn").addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(instructions);
@@ -1191,10 +1276,14 @@
       <div class="thread-tree">
         ${flat.map((item) => renderFlatMessage(thread, item.message, item.depth)).join("")}
       </div>
-      ${(thread.canResolve || thread.canDeleteThread) ? `<div class="thread-footer">
+      ${
+        thread.canResolve || thread.canDeleteThread
+          ? `<div class="thread-footer">
         ${thread.canResolve ? `<jot-button variant="link" size="sm" data-action="${thread.resolved ? "reopen" : "resolve"}" data-thread-id="${escapeHtml(thread.id)}">${thread.resolved ? "reopen" : "resolve"}</jot-button>` : ""}
         ${thread.canDeleteThread ? `<jot-button variant="danger" size="sm" data-action="delete-thread" data-thread-id="${escapeHtml(thread.id)}">delete</jot-button>` : ""}
-      </div>` : ""}
+      </div>`
+          : ""
+      }
     `;
   }
 
@@ -1372,13 +1461,15 @@
 
     const isEdit = options.mode === "edit";
     const isReply = options.mode === "reply";
-    const reopenThreadId = (window.innerWidth <= 980) ? options.threadId : null;
-    const onCancel = reopenThreadId ? () => {
-      const stillExists = state.threads.find((item) => item.id === reopenThreadId);
-      if (stillExists) {
-        setTimeout(() => openThreadDialog(reopenThreadId, refs, state.page === "public"), 50);
-      }
-    } : null;
+    const reopenThreadId = window.innerWidth <= 980 ? options.threadId : null;
+    const onCancel = reopenThreadId
+      ? () => {
+          const stillExists = state.threads.find((item) => item.id === reopenThreadId);
+          if (stillExists) {
+            setTimeout(() => openThreadDialog(reopenThreadId, refs, state.page === "public"), 50);
+          }
+        }
+      : null;
 
     openModal(refs, {
       title: isEdit ? "Edit comment" : isReply ? "Reply" : "New comment",
@@ -1467,7 +1558,8 @@
         ${options.compact ? "" : options.description ? `<p>${escapeHtml(options.description)}</p>` : ""}
         <form id="modalForm">
           ${options.fields
-            .map((field) => `
+            .map(
+              (field) => `
               <div class="field">
                 ${options.compact ? "" : `<label>${escapeHtml(field.label)}</label>`}
                 ${
@@ -1476,7 +1568,8 @@
                     : `<input type="${escapeHtml(field.type)}" name="${escapeHtml(field.name)}" value="${escapeHtml(field.value || "")}" placeholder="${escapeHtml(field.placeholder || "")}" />`
                 }
               </div>
-            `)
+            `,
+            )
             .join("")}
           <div class="inline-error hidden" id="modalError"></div>
           <div class="modal-actions">
@@ -1787,7 +1880,10 @@
       if (mapping.fullText.slice(Math.max(0, candidate - anchor.prefix.length), candidate) === anchor.prefix) {
         score += 12;
       }
-      const suffix = mapping.fullText.slice(candidate + anchor.quote.length, candidate + anchor.quote.length + anchor.suffix.length);
+      const suffix = mapping.fullText.slice(
+        candidate + anchor.quote.length,
+        candidate + anchor.quote.length + anchor.suffix.length,
+      );
       if (suffix === anchor.suffix) {
         score += 12;
       }
@@ -1812,7 +1908,9 @@
 
   function collectTextNodes(root) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode(node) { return node.parentElement?.closest(".mermaid-wrap") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; },
+      acceptNode(node) {
+        return node.parentElement?.closest(".mermaid-wrap") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      },
     });
     const segments = [];
     let node;

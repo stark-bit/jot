@@ -47,9 +47,7 @@ describe("TrackedIdList", () => {
     const tracked = emptyTracked();
     const id: ElementId = { bunchId: "b1", counter: 0 };
     tracked.insertAfter(null, id, 3);
-    expect(tracked.getAndResetUpdates()).toEqual([
-      { type: "insertAfter", before: null, id, count: 3 },
-    ]);
+    expect(tracked.getAndResetUpdates()).toEqual([{ type: "insertAfter", before: null, id, count: 3 }]);
   });
 
   it("tracks deleteRange as a single update and deletes the ids", () => {
@@ -100,10 +98,7 @@ describe("applyClientMutations: concurrent same-anchor edits", () => {
     const anchor = idAtIndex(state, 0);
 
     const first = applyClientMutations(state, [insertMutation(anchor, { bunchId: "c1", counter: 0 }, "X")]);
-    const second = applyClientMutations(
-      first.state,
-      [insertMutation(anchor, { bunchId: "c2", counter: 0 }, "Y")],
-    );
+    const second = applyClientMutations(first.state, [insertMutation(anchor, { bunchId: "c2", counter: 0 }, "Y")]);
 
     // The later insert lands immediately after the shared anchor.
     expect(textOf(second.state)).toBe("aYXb");
@@ -115,12 +110,8 @@ describe("applyClientMutations: concurrent same-anchor edits", () => {
     let state = collabFromMarkdown("abcd");
     const anchor = idAtIndex(state, 1);
 
-    const deleted = applyClientMutations(state, [
-      deleteMutation(idAtIndex(state, 1), idAtIndex(state, 2), 2),
-    ]);
-    const inserted = applyClientMutations(deleted.state, [
-      insertMutation(anchor, { bunchId: "c1", counter: 0 }, "Z"),
-    ]);
+    const deleted = applyClientMutations(state, [deleteMutation(idAtIndex(state, 1), idAtIndex(state, 2), 2)]);
+    const inserted = applyClientMutations(deleted.state, [insertMutation(anchor, { bunchId: "c1", counter: 0 }, "Z")]);
 
     // Insert after a tombstoned anchor still lands next to it.
     expect(textOf(inserted.state)).toBe("aZd");
@@ -152,9 +143,7 @@ describe("applyClientMutations: concurrent same-anchor edits", () => {
     const anchor = idAtIndex(state, 2);
     state = applyClientMutations(state, [deleteMutation(anchor)]).state;
 
-    const result = applyClientMutations(state, [
-      insertMutation(anchor, { bunchId: "c1", counter: 0 }, "X", 1, true),
-    ]);
+    const result = applyClientMutations(state, [insertMutation(anchor, { bunchId: "c1", counter: 0 }, "X", 1, true)]);
     expect(textOf(result.state)).toBe("wod");
     expect(result.changed).toBe(false);
   });
@@ -169,9 +158,7 @@ describe("applyClientMutations: concurrent same-anchor edits", () => {
 
   it("supports a null anchor to prepend", () => {
     const state = collabFromMarkdown("bc");
-    const result = applyClientMutations(state, [
-      insertMutation(null, { bunchId: "c1", counter: 0 }, "a"),
-    ]);
+    const result = applyClientMutations(state, [insertMutation(null, { bunchId: "c1", counter: 0 }, "a")]);
     expect(textOf(result.state)).toBe("abc");
   });
 
@@ -215,18 +202,14 @@ describe("applyClientMutations: deletes", () => {
 
   it("deletes nothing when endId is unknown", () => {
     const state = collabFromMarkdown("abc");
-    const result = applyClientMutations(state, [
-      deleteMutation(idAtIndex(state, 1), { bunchId: "ghost", counter: 0 }),
-    ]);
+    const result = applyClientMutations(state, [deleteMutation(idAtIndex(state, 1), { bunchId: "ghost", counter: 0 })]);
     expect(textOf(result.state)).toBe("abc");
     expect(result.changed).toBe(false);
   });
 
   it("ignores a delete whose range is far larger than contentLength", () => {
     const state = collabFromMarkdown("abcdefghijklmno");
-    const result = applyClientMutations(state, [
-      deleteMutation(idAtIndex(state, 0), idAtIndex(state, 12), 1),
-    ]);
+    const result = applyClientMutations(state, [deleteMutation(idAtIndex(state, 0), idAtIndex(state, 12), 1)]);
     expect(textOf(result.state)).toBe("abcdefghijklmno");
   });
 
@@ -272,9 +255,7 @@ describe("markdown round-trip", () => {
 
   it("survives edits between the two directions", () => {
     let state = collabFromMarkdown("hello world");
-    state = applyClientMutations(state, [
-      deleteMutation(idAtIndex(state, 5), idAtIndex(state, 10), 6),
-    ]).state;
+    state = applyClientMutations(state, [deleteMutation(idAtIndex(state, 5), idAtIndex(state, 10), 6)]).state;
     state = applyClientMutations(state, [
       insertMutation(idAtIndex(state, 4), { bunchId: "c1", counter: 0 }, " there"),
     ]).state;
@@ -301,9 +282,7 @@ describe("markdown round-trip", () => {
 describe("collab state save/load round-trip", () => {
   function stateWithHistory(): CollabState {
     let state = collabFromMarkdown("the quick brown fox");
-    state = applyClientMutations(state, [
-      deleteMutation(idAtIndex(state, 4), idAtIndex(state, 8), 5),
-    ]).state;
+    state = applyClientMutations(state, [deleteMutation(idAtIndex(state, 4), idAtIndex(state, 8), 5)]).state;
     state = applyClientMutations(state, [
       insertMutation(idAtIndex(state, 3), { bunchId: "c1", counter: 0 }, "very "),
     ]).state;
@@ -326,9 +305,7 @@ describe("collab state save/load round-trip", () => {
     state = applyClientMutations(state, [deleteMutation(anchor)]).state;
 
     const loaded = loadCollabState(saveCollabState(state));
-    const result = applyClientMutations(loaded, [
-      insertMutation(anchor, { bunchId: "c1", counter: 0 }, "X", 1, true),
-    ]);
+    const result = applyClientMutations(loaded, [insertMutation(anchor, { bunchId: "c1", counter: 0 }, "X", 1, true)]);
     expect(collabToMarkdown(result.state)).toBe("ac");
     expect(result.changed).toBe(false);
   });

@@ -11,7 +11,9 @@ const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 15000;
 const PRESENCE_STALE_MS = 60000;
 
-function isWordChar(ch) { return /[0-9A-Za-z_]/.test(ch || ""); }
+function isWordChar(ch) {
+  return /[0-9A-Za-z_]/.test(ch || "");
+}
 
 function readInsertText(event) {
   if (typeof event.data === "string") return event.data;
@@ -49,7 +51,10 @@ function lineBackward(text, cursor) {
 export function listMarkerAt(text, lineStart) {
   let i = lineStart;
   let indent = "";
-  while (i < text.length && (text[i] === " " || text[i] === "\t")) { indent += text[i]; i++; }
+  while (i < text.length && (text[i] === " " || text[i] === "\t")) {
+    indent += text[i];
+    i++;
+  }
   if (text.slice(i, i + 2) !== "- ") return null;
   return { indent, marker: "- " };
 }
@@ -66,7 +71,8 @@ function continuesList(text, lineStart, marker, caret) {
 function buildDeleteMutation(state, start, endExcl, counter) {
   if (start < 0 || endExcl <= start || endExcl > state.text.length) return null;
   return {
-    name: "delete", clientCounter: counter,
+    name: "delete",
+    clientCounter: counter,
     args: { startId: state.idList.at(start), endId: state.idList.at(endExcl - 1), contentLength: endExcl - start },
   };
 }
@@ -78,7 +84,8 @@ function buildInsertMutation(state, index, content, counter, newId) {
   const prev = index > 0 ? state.text[index - 1] : "";
   const next = index < state.text.length ? state.text[index] : "";
   return {
-    name: "insert", clientCounter: counter,
+    name: "insert",
+    clientCounter: counter,
     args: { before, id, content, isInWord: isWordChar(content[0]) && (isWordChar(prev) || isWordChar(next)) },
   };
 }
@@ -94,10 +101,28 @@ function replayPending(serverState, pending) {
 function syncMirrorStyles(mirror, textarea) {
   const cs = getComputedStyle(textarea);
   const props = [
-    "fontFamily","fontSize","fontWeight","fontStyle","letterSpacing","textTransform",
-    "wordSpacing","textIndent","borderTopWidth","borderRightWidth","borderBottomWidth",
-    "borderLeftWidth","paddingTop","paddingRight","paddingBottom","paddingLeft",
-    "wordWrap","overflowWrap","whiteSpace","lineHeight","tabSize","boxSizing",
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+    "fontStyle",
+    "letterSpacing",
+    "textTransform",
+    "wordSpacing",
+    "textIndent",
+    "borderTopWidth",
+    "borderRightWidth",
+    "borderBottomWidth",
+    "borderLeftWidth",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "wordWrap",
+    "overflowWrap",
+    "whiteSpace",
+    "lineHeight",
+    "tabSize",
+    "boxSizing",
   ];
   for (const p of props) mirror.style[p] = cs[p];
   mirror.style.width = textarea.offsetWidth + "px";
@@ -161,7 +186,8 @@ export function createCollabEditor(textarea, opts) {
 
   const mirror = document.createElement("div");
   mirror.className = "textarea-mirror";
-  mirror.style.cssText = "position:absolute;visibility:hidden;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;";
+  mirror.style.cssText =
+    "position:absolute;visibility:hidden;overflow:hidden;white-space:pre-wrap;word-wrap:break-word;pointer-events:none;";
   container.appendChild(mirror);
 
   let resizeObserver = null;
@@ -206,13 +232,20 @@ export function createCollabEditor(textarea, opts) {
   // ---- Rendering ----
 
   function render(sel) {
-    const s = clampSel(currentState.text, sel || {
-      start: textarea.selectionStart, end: textarea.selectionEnd, direction: textarea.selectionDirection || "none",
-    });
+    const s = clampSel(
+      currentState.text,
+      sel || {
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd,
+        direction: textarea.selectionDirection || "none",
+      },
+    );
     programmatic = true;
     textarea.value = currentState.text;
     textarea.setSelectionRange(s.start, s.end, s.direction);
-    queueMicrotask(() => { programmatic = false; });
+    queueMicrotask(() => {
+      programmatic = false;
+    });
     onTextChange?.(currentState.text);
     renderRemoteCursors();
   }
@@ -224,7 +257,10 @@ export function createCollabEditor(textarea, opts) {
     const cursorData = [];
 
     for (const [cid, info] of remoteCursors) {
-      if (Date.now() - info.lastUpdate > PRESENCE_STALE_MS) { remoteCursors.delete(cid); continue; }
+      if (Date.now() - info.lastUpdate > PRESENCE_STALE_MS) {
+        remoteCursors.delete(cid);
+        continue;
+      }
       try {
         const sel = selectionFromIds(info.selection, currentState.idList);
         const idx = sel.start;
@@ -270,7 +306,9 @@ export function createCollabEditor(textarea, opts) {
   function sendPresence() {
     if (!initialized || !connected || !clientId || !ws || ws.readyState !== WebSocket.OPEN) return;
     const sel = selectionToIds(
-      currentState.idList, textarea.selectionStart, textarea.selectionEnd,
+      currentState.idList,
+      textarea.selectionStart,
+      textarea.selectionEnd,
       textarea.selectionDirection || "none",
     );
     const key = JSON.stringify(sel);
@@ -286,10 +324,13 @@ export function createCollabEditor(textarea, opts) {
       sendPresence();
     } else {
       clearTimeout(presenceTimer);
-      presenceTimer = setTimeout(() => {
-        lastPresenceSent = Date.now();
-        sendPresence();
-      }, PRESENCE_THROTTLE_MS - (now - lastPresenceSent));
+      presenceTimer = setTimeout(
+        () => {
+          lastPresenceSent = Date.now();
+          sendPresence();
+        },
+        PRESENCE_THROTTLE_MS - (now - lastPresenceSent),
+      );
     }
   }
 
@@ -312,7 +353,12 @@ export function createCollabEditor(textarea, opts) {
 
   function receiveHello(msg) {
     const selIds = initialized
-      ? selectionToIds(currentState.idList, textarea.selectionStart, textarea.selectionEnd, textarea.selectionDirection || "none")
+      ? selectionToIds(
+          currentState.idList,
+          textarea.selectionStart,
+          textarea.selectionEnd,
+          textarea.selectionDirection || "none",
+        )
       : null;
 
     if (msg.clientId) clientId = msg.clientId;
@@ -332,7 +378,12 @@ export function createCollabEditor(textarea, opts) {
 
   function receiveMutation(msg) {
     if (!initialized) return;
-    const selIds = selectionToIds(currentState.idList, textarea.selectionStart, textarea.selectionEnd, textarea.selectionDirection || "none");
+    const selIds = selectionToIds(
+      currentState.idList,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+      textarea.selectionDirection || "none",
+    );
     serverState = { text: msg.markdown || "", idList: applyIdListUpdates(serverState.idList, msg.idListUpdates || []) };
     if (msg.senderId === clientId) {
       const idx = pendingMutations.findIndex((m) => m.clientCounter === msg.senderCounter);
@@ -344,7 +395,12 @@ export function createCollabEditor(textarea, opts) {
   }
 
   function receivePresence(msg) {
-    remoteCursors.set(msg.clientId, { name: msg.name, color: msg.color, selection: msg.selection, lastUpdate: Date.now() });
+    remoteCursors.set(msg.clientId, {
+      name: msg.name,
+      color: msg.color,
+      selection: msg.selection,
+      lastUpdate: Date.now(),
+    });
     renderRemoteCursors();
   }
 
@@ -356,7 +412,10 @@ export function createCollabEditor(textarea, opts) {
   // ---- Input handling ----
 
   function handleBeforeInput(event) {
-    if (!initialized || !connected) { event.preventDefault(); return; }
+    if (!initialized || !connected) {
+      event.preventDefault();
+      return;
+    }
     if (event.isComposing || event.inputType.includes("Composition")) return;
 
     const it = event.inputType;
@@ -369,25 +428,33 @@ export function createCollabEditor(textarea, opts) {
     function pushDel(s, e) {
       const m = buildDeleteMutation(ws2, s, e, nextClientCounter++);
       if (!m) return false;
-      mutations.push(m); ws2 = applyClientMutation(ws2, m); return true;
+      mutations.push(m);
+      ws2 = applyClientMutation(ws2, m);
+      return true;
     }
     function pushIns(i, c) {
       const m = buildInsertMutation(ws2, i, c, nextClientCounter++, newId);
       if (!m) return false;
-      mutations.push(m); ws2 = applyClientMutation(ws2, m); return true;
+      mutations.push(m);
+      ws2 = applyClientMutation(ws2, m);
+      return true;
     }
 
     let sel = { start: ss, end: se, direction: "none" };
 
     if (hasSel && it !== "historyUndo" && it !== "historyRedo") {
-      pushDel(ss, se); sel = { start: ss, end: ss, direction: "none" };
+      pushDel(ss, se);
+      sel = { start: ss, end: ss, direction: "none" };
     }
 
     if (it === "insertText" || it === "insertReplacementText" || it === "insertFromPaste" || it === "insertFromDrop") {
-      const c = readInsertText(event); if (!c) return;
+      const c = readInsertText(event);
+      if (!c) return;
       event.preventDefault();
-      pushIns(sel.start, c); sel = { start: sel.start + c.length, end: sel.start + c.length, direction: "none" };
-      applyLocalMutations(mutations, sel); return;
+      pushIns(sel.start, c);
+      sel = { start: sel.start + c.length, end: sel.start + c.length, direction: "none" };
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "insertLineBreak" || it === "insertParagraph") {
       event.preventDefault();
@@ -396,33 +463,58 @@ export function createCollabEditor(textarea, opts) {
       const m = listMarkerAt(currentState.text, lineStart);
       let ins = "\n";
       if (m && continuesList(currentState.text, lineStart, m, sel.start)) ins = "\n" + m.indent + m.marker;
-      pushIns(sel.start, ins); sel = { start: sel.start + ins.length, end: sel.start + ins.length, direction: "none" };
-      applyLocalMutations(mutations, sel); return;
+      pushIns(sel.start, ins);
+      sel = { start: sel.start + ins.length, end: sel.start + ins.length, direction: "none" };
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "deleteContentBackward") {
       event.preventDefault();
-      if (!hasSel && ss > 0) { pushDel(ss - 1, ss); sel = { start: ss - 1, end: ss - 1, direction: "none" }; }
-      applyLocalMutations(mutations, sel); return;
+      if (!hasSel && ss > 0) {
+        pushDel(ss - 1, ss);
+        sel = { start: ss - 1, end: ss - 1, direction: "none" };
+      }
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "deleteContentForward") {
       event.preventDefault();
-      if (!hasSel && ss < currentState.text.length) { pushDel(ss, ss + 1); sel = { start: ss, end: ss, direction: "none" }; }
-      applyLocalMutations(mutations, sel); return;
+      if (!hasSel && ss < currentState.text.length) {
+        pushDel(ss, ss + 1);
+        sel = { start: ss, end: ss, direction: "none" };
+      }
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "deleteWordBackward") {
       event.preventDefault();
-      if (!hasSel && ss > 0) { const s = wordBackward(currentState.text, ss); pushDel(s, ss); sel = { start: s, end: s, direction: "none" }; }
-      applyLocalMutations(mutations, sel); return;
+      if (!hasSel && ss > 0) {
+        const s = wordBackward(currentState.text, ss);
+        pushDel(s, ss);
+        sel = { start: s, end: s, direction: "none" };
+      }
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "deleteWordForward") {
       event.preventDefault();
-      if (!hasSel && ss < currentState.text.length) { const e = wordForward(currentState.text, ss); pushDel(ss, e); sel = { start: ss, end: ss, direction: "none" }; }
-      applyLocalMutations(mutations, sel); return;
+      if (!hasSel && ss < currentState.text.length) {
+        const e = wordForward(currentState.text, ss);
+        pushDel(ss, e);
+        sel = { start: ss, end: ss, direction: "none" };
+      }
+      applyLocalMutations(mutations, sel);
+      return;
     }
     if (it === "deleteSoftLineBackward" || it === "deleteHardLineBackward") {
       event.preventDefault();
-      if (!hasSel && ss > 0) { const s = lineBackward(currentState.text, ss); pushDel(s, ss); sel = { start: s, end: s, direction: "none" }; }
-      applyLocalMutations(mutations, sel); return;
+      if (!hasSel && ss > 0) {
+        const s = lineBackward(currentState.text, ss);
+        pushDel(s, ss);
+        sel = { start: s, end: s, direction: "none" };
+      }
+      applyLocalMutations(mutations, sel);
+      return;
     }
   }
 
@@ -436,16 +528,33 @@ export function createCollabEditor(textarea, opts) {
     const prev = currentState.text;
     let prefix = 0;
     while (prefix < prev.length && prefix < nextText.length && prev[prefix] === nextText[prefix]) prefix++;
-    let ps = prev.length, ns = nextText.length;
-    while (ps > prefix && ns > prefix && prev[ps - 1] === nextText[ns - 1]) { ps--; ns--; }
+    let ps = prev.length,
+      ns = nextText.length;
+    while (ps > prefix && ns > prefix && prev[ps - 1] === nextText[ns - 1]) {
+      ps--;
+      ns--;
+    }
 
     const mutations = [];
     let ws2 = { text: currentState.text, idList: currentState.idList.clone() };
     const dm = buildDeleteMutation(ws2, prefix, ps, nextClientCounter);
-    if (dm) { nextClientCounter++; mutations.push(dm); ws2 = applyClientMutation(ws2, dm); }
+    if (dm) {
+      nextClientCounter++;
+      mutations.push(dm);
+      ws2 = applyClientMutation(ws2, dm);
+    }
     const ins = nextText.slice(prefix, ns);
-    if (ins) { const im = buildInsertMutation(ws2, prefix, ins, nextClientCounter, newId); if (im) { nextClientCounter++; mutations.push(im); } }
-    if (!mutations.length) { render({ start: prefix, end: prefix, direction: "none" }); return; }
+    if (ins) {
+      const im = buildInsertMutation(ws2, prefix, ins, nextClientCounter, newId);
+      if (im) {
+        nextClientCounter++;
+        mutations.push(im);
+      }
+    }
+    if (!mutations.length) {
+      render({ start: prefix, end: prefix, direction: "none" });
+      return;
+    }
     const cursor = prefix + ins.length;
     applyLocalMutations(mutations, { start: cursor, end: cursor, direction: "none" });
   }
@@ -459,7 +568,12 @@ export function createCollabEditor(textarea, opts) {
 
     ws.addEventListener("open", () => {});
     ws.addEventListener("message", (event) => {
-      let msg; try { msg = JSON.parse(event.data); } catch { return; }
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch {
+        return;
+      }
       if (msg.type === "hello") receiveHello(msg);
       else if (msg.type === "mutation") receiveMutation(msg);
       else if (msg.type === "presence") receivePresence(msg);
@@ -471,17 +585,28 @@ export function createCollabEditor(textarea, opts) {
       setConnected(false);
       remoteCursors.clear();
       renderRemoteCursors();
-      setTimeout(() => { if (!destroyed) { reconnectDelay = Math.min(reconnectDelay * 1.5, RECONNECT_MAX_MS); connect(); } }, reconnectDelay);
+      setTimeout(() => {
+        if (!destroyed) {
+          reconnectDelay = Math.min(reconnectDelay * 1.5, RECONNECT_MAX_MS);
+          connect();
+        }
+      }, reconnectDelay);
     });
-    ws.addEventListener("error", () => { setConnected(false); });
+    ws.addEventListener("error", () => {
+      setConnected(false);
+    });
   }
 
   // ---- Event listeners ----
 
   textarea.addEventListener("beforeinput", handleBeforeInput);
   textarea.addEventListener("input", handleInput);
-  textarea.addEventListener("compositionend", () => { if (textarea.value !== currentState.text) applyDiffFallback(textarea.value); });
-  document.addEventListener("selectionchange", () => { if (document.activeElement === textarea) throttledPresence(); });
+  textarea.addEventListener("compositionend", () => {
+    if (textarea.value !== currentState.text) applyDiffFallback(textarea.value);
+  });
+  document.addEventListener("selectionchange", () => {
+    if (document.activeElement === textarea) throttledPresence();
+  });
   textarea.addEventListener("focus", throttledPresence);
   textarea.addEventListener("blur", throttledPresence);
   textarea.addEventListener("scroll", renderRemoteCursors);
@@ -498,6 +623,8 @@ export function createCollabEditor(textarea, opts) {
       overlay.remove();
       mirror.remove();
     },
-    getText() { return currentState.text; },
+    getText() {
+      return currentState.text;
+    },
   };
 }

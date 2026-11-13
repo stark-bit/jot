@@ -29,7 +29,6 @@ import hljs from "highlight.js";
 import { marked, type Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
 
-
 type CommentAnchor = {
   quote: string;
   prefix: string;
@@ -162,9 +161,7 @@ codeRenderer.code = ({ text, lang }: Tokens.Code) => {
     return `<pre class="mermaid">${escapeHtml(text)}</pre>`;
   }
   const validLanguage = language && hljs.getLanguage(language) ? language : null;
-  const highlighted = validLanguage
-    ? hljs.highlight(text, { language: validLanguage }).value
-    : escapeHtml(text);
+  const highlighted = validLanguage ? hljs.highlight(text, { language: validLanguage }).value : escapeHtml(text);
   const languageClass = validLanguage ? ` class="hljs language-${escapeHtml(validLanguage)}"` : ' class="hljs"';
   return `<pre><code${languageClass}>${highlighted}</code></pre>`;
 };
@@ -396,8 +393,9 @@ app.post("/api/notes/:id/edit", requireOwnerApi, (req, res) => {
   note.collab = workingCollab;
   note.markdown = markdown;
   note.updatedAt = nowIso();
-  const titleChanged = Object.prototype.hasOwnProperty.call(req.body || {}, "title")
-    && normalizeTitle(String(req.body.title || note.title)) !== note.title;
+  const titleChanged =
+    Object.prototype.hasOwnProperty.call(req.body || {}, "title") &&
+    normalizeTitle(String(req.body.title || note.title)) !== note.title;
   if (Object.prototype.hasOwnProperty.call(req.body || {}, "title")) {
     note.title = normalizeTitle(String(req.body.title || note.title));
   }
@@ -523,9 +521,15 @@ app.post("/api/notes/:id/threads/:threadId/replies", requireOwnerApi, (req, res)
 
 app.patch("/api/notes/:id/threads/:threadId", requireOwnerApi, (req, res) => {
   const note = notes.get(String(req.params.id));
-  if (!note) { res.status(404).json({ ok: false, error: "Note not found." }); return; }
+  if (!note) {
+    res.status(404).json({ ok: false, error: "Note not found." });
+    return;
+  }
   const thread = note.threads.find((t) => t.id === String(req.params.threadId));
-  if (!thread) { res.status(404).json({ ok: false, error: "Thread not found." }); return; }
+  if (!thread) {
+    res.status(404).json({ ok: false, error: "Thread not found." });
+    return;
+  }
   thread.resolved = Boolean(req.body.resolved);
   thread.updatedAt = nowIso();
   note.updatedAt = thread.updatedAt;
@@ -536,7 +540,10 @@ app.patch("/api/notes/:id/threads/:threadId", requireOwnerApi, (req, res) => {
 
 app.delete("/api/notes/:id/threads/:threadId", requireOwnerApi, (req, res) => {
   const note = notes.get(String(req.params.id));
-  if (!note) { res.status(404).json({ ok: false, error: "Note not found." }); return; }
+  if (!note) {
+    res.status(404).json({ ok: false, error: "Note not found." });
+    return;
+  }
   note.threads = note.threads.filter((t) => t.id !== String(req.params.threadId));
   note.updatedAt = nowIso();
   persistNote(note);
@@ -546,11 +553,20 @@ app.delete("/api/notes/:id/threads/:threadId", requireOwnerApi, (req, res) => {
 
 app.patch("/api/notes/:id/messages/:messageId", requireOwnerApi, (req, res) => {
   const note = notes.get(String(req.params.id));
-  if (!note) { res.status(404).json({ ok: false, error: "Note not found." }); return; }
+  if (!note) {
+    res.status(404).json({ ok: false, error: "Note not found." });
+    return;
+  }
   const located = locateMessage(note, String(req.params.messageId));
-  if (!located) { res.status(404).json({ ok: false, error: "Message not found." }); return; }
+  if (!located) {
+    res.status(404).json({ ok: false, error: "Message not found." });
+    return;
+  }
   const body = normalizeCommentBody(String(req.body.body || ""));
-  if (!body) { res.status(400).json({ ok: false, error: "Body is required." }); return; }
+  if (!body) {
+    res.status(400).json({ ok: false, error: "Body is required." });
+    return;
+  }
   located.message.body = body;
   located.message.updatedAt = nowIso();
   located.thread.updatedAt = located.message.updatedAt;
@@ -562,9 +578,15 @@ app.patch("/api/notes/:id/messages/:messageId", requireOwnerApi, (req, res) => {
 
 app.delete("/api/notes/:id/messages/:messageId", requireOwnerApi, (req, res) => {
   const note = notes.get(String(req.params.id));
-  if (!note) { res.status(404).json({ ok: false, error: "Note not found." }); return; }
+  if (!note) {
+    res.status(404).json({ ok: false, error: "Note not found." });
+    return;
+  }
   const located = locateMessage(note, String(req.params.messageId));
-  if (!located) { res.status(404).json({ ok: false, error: "Message not found." }); return; }
+  if (!located) {
+    res.status(404).json({ ok: false, error: "Message not found." });
+    return;
+  }
   located.thread.messages = located.thread.messages.filter((m) => m.id !== located.message.id);
   if (located.thread.messages.length === 0) {
     note.threads = note.threads.filter((t) => t.id !== located.thread.id);
@@ -586,8 +608,12 @@ app.delete("/api/notes/:id", requireOwnerApi, (req, res) => {
   }
 
   notes.delete(id);
-  try { fs.unlinkSync(noteMarkdownPath(id)); } catch {}
-  try { fs.unlinkSync(noteMetaPath(id)); } catch {}
+  try {
+    fs.unlinkSync(noteMarkdownPath(id));
+  } catch {}
+  try {
+    fs.unlinkSync(noteMetaPath(id));
+  } catch {}
   res.json({ ok: true });
 });
 
@@ -650,9 +676,10 @@ app.put("/api/notes/:id", requireOwnerApi, (req, res) => {
   const shareAccessProvided = Object.prototype.hasOwnProperty.call(req.body || {}, "shareAccess");
   const nextTitle = titleProvided ? normalizeTitle(String(req.body.title || note.title)) : note.title;
   const nextMarkdown = markdownProvided ? String(req.body.markdown || "") : note.markdown;
-  const nextShareAccess = shareAccessProvided && ["none", "view", "comment", "edit"].includes(req.body.shareAccess)
-    ? (req.body.shareAccess as ShareAccess)
-    : note.shareAccess;
+  const nextShareAccess =
+    shareAccessProvided && ["none", "view", "comment", "edit"].includes(req.body.shareAccess)
+      ? (req.body.shareAccess as ShareAccess)
+      : note.shareAccess;
   const titleChanged = nextTitle !== note.title;
   const markdownChanged = nextMarkdown !== note.markdown;
 
@@ -1117,12 +1144,23 @@ wss.on("connection", (ws, req) => {
 
     const clientId = `c${++clientIdCounter}`;
     const color = CURSOR_COLORS[nextColorIndex++ % CURSOR_COLORS.length];
-    const conn: ClientConn = { ws, kind: "editor", noteId: note.id, shareId: note.shareId, clientId, name: "Owner", color, alive: true };
+    const conn: ClientConn = {
+      ws,
+      kind: "editor",
+      noteId: note.id,
+      shareId: note.shareId,
+      clientId,
+      name: "Owner",
+      color,
+      alive: true,
+    };
     clients.push(conn);
     sendServerMessage(ws, { ...buildHelloMessage(note), clientId });
     sendExistingPresence(conn);
 
-    ws.on("pong", () => { conn.alive = true; });
+    ws.on("pong", () => {
+      conn.alive = true;
+    });
     ws.on("message", (data) => handleEditorMessage(conn, String(data)));
     ws.on("close", () => handleDisconnect(conn));
     ws.on("error", () => handleDisconnect(conn));
@@ -1140,12 +1178,23 @@ wss.on("connection", (ws, req) => {
       const commenterName = getCommenterIdentityFromHeaders(req.headers).name;
       const clientId = `c${++clientIdCounter}`;
       const color = CURSOR_COLORS[nextColorIndex++ % CURSOR_COLORS.length];
-      const conn: ClientConn = { ws, kind: "public-editor", noteId: note.id, shareId: note.shareId, clientId, name: commenterName || "Anonymous", color, alive: true };
+      const conn: ClientConn = {
+        ws,
+        kind: "public-editor",
+        noteId: note.id,
+        shareId: note.shareId,
+        clientId,
+        name: commenterName || "Anonymous",
+        color,
+        alive: true,
+      };
       clients.push(conn);
       sendServerMessage(ws, { ...buildHelloMessage(note), clientId });
       sendExistingPresence(conn);
 
-      ws.on("pong", () => { conn.alive = true; });
+      ws.on("pong", () => {
+        conn.alive = true;
+      });
       ws.on("message", (data) => handleEditorMessage(conn, String(data)));
       ws.on("close", () => handleDisconnect(conn));
       ws.on("error", () => handleDisconnect(conn));
@@ -1153,9 +1202,20 @@ wss.on("connection", (ws, req) => {
     }
 
     const clientId = `c${++clientIdCounter}`;
-    const conn: ClientConn = { ws, kind: "public-viewer", noteId: note.id, shareId: note.shareId, clientId, name: "", color: "", alive: true };
+    const conn: ClientConn = {
+      ws,
+      kind: "public-viewer",
+      noteId: note.id,
+      shareId: note.shareId,
+      clientId,
+      name: "",
+      color: "",
+      alive: true,
+    };
     clients.push(conn);
-    ws.on("pong", () => { conn.alive = true; });
+    ws.on("pong", () => {
+      conn.alive = true;
+    });
     ws.on("close", () => handleDisconnect(conn));
     ws.on("error", () => handleDisconnect(conn));
     return;
@@ -1196,7 +1256,12 @@ function handleEditorMessage(conn: ClientConn, data: string) {
     return;
   }
 
-  if (message.type !== "mutation" || !(message as ClientMutationMessage).clientId || !Array.isArray((message as ClientMutationMessage).mutations) || (message as ClientMutationMessage).mutations.length === 0) {
+  if (
+    message.type !== "mutation" ||
+    !(message as ClientMutationMessage).clientId ||
+    !Array.isArray((message as ClientMutationMessage).mutations) ||
+    (message as ClientMutationMessage).mutations.length === 0
+  ) {
     return;
   }
 
@@ -1264,7 +1329,13 @@ function handleEditorMessage(conn: ClientConn, data: string) {
   broadcastNoteUpdate(note);
 }
 
-type AnyServerMessage = (ServerHelloMessage & { clientId?: string }) | ServerMutationMessage | ServerPresenceMessage | ServerPresenceLeaveMessage | { type: "updated"; noteId: string; shareId: string; updatedAt: string } | { type: "threads-updated"; noteId: string; shareId: string };
+type AnyServerMessage =
+  | (ServerHelloMessage & { clientId?: string })
+  | ServerMutationMessage
+  | ServerPresenceMessage
+  | ServerPresenceLeaveMessage
+  | { type: "updated"; noteId: string; shareId: string; updatedAt: string }
+  | { type: "threads-updated"; noteId: string; shareId: string };
 
 function sendServerMessage(ws: WebSocket, message: AnyServerMessage) {
   if (ws.readyState === 1) {
@@ -1322,11 +1393,15 @@ function enforceShareAccessForConnections(note: NoteRecord) {
       continue;
     }
     if (conn.kind === "public-editor" && note.shareAccess !== "edit") {
-      try { conn.ws.close(); } catch {}
+      try {
+        conn.ws.close();
+      } catch {}
       continue;
     }
     if (conn.kind === "public-viewer" && note.shareAccess === "none") {
-      try { conn.ws.close(); } catch {}
+      try {
+        conn.ws.close();
+      } catch {}
     }
   }
 }
@@ -1595,27 +1670,27 @@ function serializeThreads(note: NoteRecord, req: Request) {
       return a.createdAt.localeCompare(b.createdAt);
     })
     .map((thread) => ({
-    id: thread.id,
-    resolved: thread.resolved,
-    createdAt: thread.createdAt,
-    updatedAt: thread.updatedAt,
-    anchor: thread.anchor,
-    canReply: viewer.isOwner || viewer.hasCommenterIdentity,
-    canResolve: viewer.isOwner || viewer.hasCommenterIdentity,
-    canDeleteThread: viewer.isOwner,
-    messages: [...thread.messages]
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      .map((message) => ({
-      id: message.id,
-      parentId: message.parentId,
-      authorName: message.authorName,
-      body: message.body,
-      createdAt: message.createdAt,
-      updatedAt: message.updatedAt,
-      canEdit: viewer.isOwner || (Boolean(commenter.id) && commenter.id === message.authorId),
-      canDelete: viewer.isOwner || (Boolean(commenter.id) && commenter.id === message.authorId),
-    })),
-  }));
+      id: thread.id,
+      resolved: thread.resolved,
+      createdAt: thread.createdAt,
+      updatedAt: thread.updatedAt,
+      anchor: thread.anchor,
+      canReply: viewer.isOwner || viewer.hasCommenterIdentity,
+      canResolve: viewer.isOwner || viewer.hasCommenterIdentity,
+      canDeleteThread: viewer.isOwner,
+      messages: [...thread.messages]
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+        .map((message) => ({
+          id: message.id,
+          parentId: message.parentId,
+          authorName: message.authorName,
+          body: message.body,
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt,
+          canEdit: viewer.isOwner || (Boolean(commenter.id) && commenter.id === message.authorId),
+          canDelete: viewer.isOwner || (Boolean(commenter.id) && commenter.id === message.authorId),
+        })),
+    }));
 }
 
 function serializeNoteForClient(note: NoteRecord, req: Request) {
@@ -1762,7 +1837,12 @@ function nowIso() {
 }
 
 function createShortId(length = 8) {
-  return crypto.randomBytes(length).toString("base64url").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, length);
+  return crypto
+    .randomBytes(length)
+    .toString("base64url")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .slice(0, length);
 }
 
 function createId(length = 12) {

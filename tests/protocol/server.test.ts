@@ -67,12 +67,7 @@ function asMutation(message: ServerMessage) {
   };
 }
 
-function insertMutation(
-  before: unknown,
-  bunchId: string,
-  content: string,
-  clientCounter: number,
-): ClientMutation {
+function insertMutation(before: unknown, bunchId: string, content: string, clientCounter: number): ClientMutation {
   return {
     name: "insert",
     clientCounter,
@@ -130,13 +125,10 @@ describe("mutation ordering and acks", () => {
       const clientId = (await client.waitFor("hello")).clientId as string;
       const lastCounter = mutations.at(-1)!.clientCounter;
       client.send({ type: "mutation", clientId, mutations });
-      const broadcast = await client.waitFor(
-        "mutation",
-        (message) => {
-          const m = message as { senderId?: string; senderCounter?: number };
-          return m.senderId === clientId && m.senderCounter === lastCounter;
-        },
-      );
+      const broadcast = await client.waitFor("mutation", (message) => {
+        const m = message as { senderId?: string; senderCounter?: number };
+        return m.senderId === clientId && m.senderCounter === lastCounter;
+      });
       batches.push({ clientId, mutations });
       return asMutation(broadcast);
     }
@@ -154,7 +146,7 @@ describe("mutation ordering and acks", () => {
     const ackA2 = await sendFrom(clientA, [insertMutation(null, "bunch-a2", ">>", 2)]);
     const expectedFinal = applyClientMutations(expectedAfterB.state, batches[2].mutations);
 
-    const final = await (await server.requestPath(`/api/notes/${note.id}`)).json() as {
+    const final = (await (await server.requestPath(`/api/notes/${note.id}`)).json()) as {
       note: { markdown: string };
     };
 
@@ -181,15 +173,9 @@ describe("mutation ordering and acks", () => {
     client.send({
       type: "mutation",
       clientId,
-      mutations: [
-        insertMutation(null, "ack-bunch", "new ", 3),
-        insertMutation(null, "ack-bunch2", "words", 5),
-      ],
+      mutations: [insertMutation(null, "ack-bunch", "new ", 3), insertMutation(null, "ack-bunch2", "words", 5)],
     });
-    const ack = await client.waitFor(
-      "mutation",
-      (message) => (message as { senderId?: string }).senderId === clientId,
-    );
+    const ack = await client.waitFor("mutation", (message) => (message as { senderId?: string }).senderId === clientId);
     const ackMessage = asMutation(ack);
     expect(ackMessage.senderCounter).toBe(5);
     expect(ackMessage.idListUpdates.length).toBeGreaterThan(0);
@@ -198,10 +184,7 @@ describe("mutation ordering and acks", () => {
     client.send({
       type: "mutation",
       clientId,
-      mutations: [
-        insertMutation(null, "ack-bunch", "new ", 3),
-        insertMutation(null, "ack-bunch2", "words", 5),
-      ],
+      mutations: [insertMutation(null, "ack-bunch", "new ", 3), insertMutation(null, "ack-bunch2", "words", 5)],
     });
     const repeatAck = await client.waitFor("mutation", (message) => {
       const m = asMutation(message);
@@ -209,7 +192,7 @@ describe("mutation ordering and acks", () => {
     });
     expect(repeatAck.type).toBe("mutation");
 
-    const after = await (await server.requestPath(`/api/notes/${note.id}`)).json() as {
+    const after = (await (await server.requestPath(`/api/notes/${note.id}`)).json()) as {
       note: { markdown: string };
     };
     // "words" was inserted at the same null anchor afterwards, so it lands first.
@@ -267,10 +250,7 @@ describe("mutation ordering and acks", () => {
         } as unknown as ClientMutation,
       ],
     });
-    const ack = await client.waitFor(
-      "mutation",
-      (message) => (message as { senderId?: string }).senderId === clientId,
-    );
+    const ack = await client.waitFor("mutation", (message) => (message as { senderId?: string }).senderId === clientId);
     const ackMessage = asMutation(ack);
     expect(ackMessage.senderCounter).toBe(1);
     expect(ackMessage.idListUpdates).toEqual([]);
@@ -288,7 +268,7 @@ describe("mutation ordering and acks", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 200));
     expect(client.received("mutation")).toEqual([]);
-    const current = await (await server.requestPath(`/api/notes/${note.id}`)).json() as {
+    const current = (await (await server.requestPath(`/api/notes/${note.id}`)).json()) as {
       note: { markdown: string };
     };
     expect(current.note.markdown).toBe("mine");
@@ -317,7 +297,7 @@ describe("captured REST behaviors", () => {
     expect(message.idListUpdates.some((update) => update.type === "insertAfter")).toBe(true);
     expect(message.markdown).toBe("alpha BETA! gamma");
 
-    const current = await (await server.requestPath(`/api/notes/${note.id}`)).json() as {
+    const current = (await (await server.requestPath(`/api/notes/${note.id}`)).json()) as {
       note: { markdown: string };
     };
     expect(current.note.markdown).toBe("alpha BETA! gamma");
@@ -326,7 +306,7 @@ describe("captured REST behaviors", () => {
 
   it("markdown PUT rebuilds the collab state without bypass", async () => {
     const note = await createNote(server, "one");
-    const before = await (await server.requestPath(`/api/notes/${note.id}/collab`)).json() as {
+    const before = (await (await server.requestPath(`/api/notes/${note.id}/collab`)).json()) as {
       serverCounter: number;
     };
 
@@ -337,7 +317,7 @@ describe("captured REST behaviors", () => {
     });
     expect(put.ok).toBe(true);
 
-    const collab = await (await server.requestPath(`/api/notes/${note.id}/collab`)).json() as {
+    const collab = (await (await server.requestPath(`/api/notes/${note.id}/collab`)).json()) as {
       serverCounter: number;
       collabState: Parameters<typeof loadCollabState>[0];
     };
@@ -355,7 +335,7 @@ describe("captured REST behaviors", () => {
       body: JSON.stringify({ edits: [{ oldText: "three", newText: "3" }] }),
     });
     expect(edit.ok).toBe(true);
-    const current = await (await server.requestPath(`/api/notes/${note.id}`)).json() as {
+    const current = (await (await server.requestPath(`/api/notes/${note.id}`)).json()) as {
       note: { markdown: string };
     };
     expect(current.note.markdown).toBe("two 3 four");
@@ -375,7 +355,7 @@ describe("captured REST behaviors", () => {
     expect(payload.note.title).toBe("legacy note");
     expect(payload.note.markdown).toBe("# legacy\n\nold text\n");
 
-    const collab = await (await server.requestPath("/api/notes/legacy1/collab")).json() as {
+    const collab = (await (await server.requestPath("/api/notes/legacy1/collab")).json()) as {
       serverCounter: number;
       collabState: Parameters<typeof loadCollabState>[0];
     };
@@ -397,10 +377,7 @@ describe("captured REST behaviors", () => {
       clientId,
       mutations: [insertMutation(null, "disk-bunch", "LIVE ", 1)],
     });
-    await client.waitFor(
-      "mutation",
-      (message) => (message as { senderId?: string }).senderId === clientId,
-    );
+    await client.waitFor("mutation", (message) => (message as { senderId?: string }).senderId === clientId);
     expect(fs.readFileSync(mdPath, "utf8")).toBe("LIVE disk check");
 
     // PUT markdown rewrites the file as well.

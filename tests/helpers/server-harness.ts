@@ -47,11 +47,7 @@ export function getFreePort(): Promise<number> {
   });
 }
 
-export async function apiRequest(
-  baseUrl: string,
-  requestPath: string,
-  init?: RequestInit,
-): Promise<Response> {
+export async function apiRequest(baseUrl: string, requestPath: string, init?: RequestInit): Promise<Response> {
   return fetch(`${baseUrl}${requestPath}`, init);
 }
 
@@ -67,12 +63,7 @@ function jsonInit(method: string, body: unknown, cookie?: string): RequestInit {
 }
 
 // A note meta file without any collab state, as written by older versions.
-export function writeLegacyNote(
-  dataDir: string,
-  id: string,
-  title: string,
-  markdown: string,
-) {
+export function writeLegacyNote(dataDir: string, id: string, title: string, markdown: string) {
   const notesDir = path.join(dataDir, "notes");
   fs.mkdirSync(notesDir, { recursive: true });
   fs.writeFileSync(path.join(notesDir, `${id}.md`), markdown, "utf8");
@@ -96,9 +87,7 @@ export function writeLegacyNote(
   );
 }
 
-export async function startTestServer(
-  options: { beforeStart?: (dataDir: string) => void } = {},
-): Promise<TestServer> {
+export async function startTestServer(options: { beforeStart?: (dataDir: string) => void } = {}): Promise<TestServer> {
   const port = await getFreePort();
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "jot-test-"));
   fs.mkdirSync(path.join(dataDir, "notes"), { recursive: true });
@@ -145,10 +134,13 @@ export async function startTestServer(
   }
 
   const ownerPassword = crypto.randomBytes(12).toString("base64url");
-  const setupResponse = await fetch(`${baseUrl}/api/auth/setup`, jsonInit("POST", {
-    password: ownerPassword,
-    confirmPassword: ownerPassword,
-  }));
+  const setupResponse = await fetch(
+    `${baseUrl}/api/auth/setup`,
+    jsonInit("POST", {
+      password: ownerPassword,
+      confirmPassword: ownerPassword,
+    }),
+  );
   if (!setupResponse.ok) {
     throw new Error(`auth setup failed: ${setupResponse.status}`);
   }
@@ -210,10 +202,7 @@ export async function startTestServer(
   };
 }
 
-export async function createNote(
-  server: TestServer,
-  markdown?: string,
-): Promise<{ id: string; title: string }> {
+export async function createNote(server: TestServer, markdown?: string): Promise<{ id: string; title: string }> {
   const created = await server.requestPath("/api/notes", { method: "POST" });
   const { note } = (await created.json()) as { note: { id: string; title: string } };
   if (markdown !== undefined) {
