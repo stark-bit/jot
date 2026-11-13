@@ -39,11 +39,15 @@ async function request(instance, method, endpoint, body) {
   };
 
   if (instance.token) {
+    // TODO(ts): TS2339 Property 'Authorization' does not exist on type '{}'.
+    // @ts-expect-error
     options.headers.Authorization = `Bearer ${instance.token}`;
   }
 
   if (body !== undefined) {
     options.headers["Content-Type"] = "application/json";
+    // TODO(ts): TS2339 Property 'body' does not exist on type '{ method: any; headers: {}; }'.
+    // @ts-expect-error
     options.body = JSON.stringify(body);
   }
 
@@ -74,7 +78,7 @@ if (command === "serve") {
   const portArg = args.find((a) => a.startsWith("--port="));
   const dataArg = args.find((a) => a.startsWith("--data="));
   const cliDir = path.dirname(new URL(import.meta.url).pathname);
-  const serverPath = path.join(cliDir, "..", "dist", "server.js");
+  const serverPath = path.join(cliDir, "..", "server", "server.js");
   if (!fs.existsSync(serverPath)) {
     console.error(`Server not found at ${serverPath}. Run 'npm run build' first.`);
     process.exit(1);
@@ -170,6 +174,8 @@ if (isShareInstance(instance)) {
 
   switch (subCommand) {
     case "read": {
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const payload = await request(instance, "GET", `/api/share/${sid}/note`);
       const note = payload.note;
       console.log(`# ${note.title}`);
@@ -253,6 +259,8 @@ if (isShareInstance(instance)) {
 } else {
   switch (subCommand) {
     case "list": {
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const payload = await request(instance, "GET", "/api/notes");
       for (const note of payload.notes) {
         console.log(`${note.id}\t${note.title}\t${note.updatedAt}`);
@@ -266,6 +274,8 @@ if (isShareInstance(instance)) {
         console.error("Usage: jot <instance> search <query>");
         process.exit(1);
       }
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const payload = await request(instance, "GET", `/api/notes?q=${encodeURIComponent(query)}`);
       for (const note of payload.notes) {
         console.log(`${note.id}\t${note.title}\t${note.updatedAt}`);
@@ -291,6 +301,8 @@ if (isShareInstance(instance)) {
       if (limit) params.push(`limit=${limit}`);
       if (params.length) endpoint += `?${params.join("&")}`;
 
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const payload = await request(instance, "GET", endpoint);
       const note = payload.note;
 
@@ -328,6 +340,8 @@ if (isShareInstance(instance)) {
 
     case "create": {
       const title = args.slice(2).join(" ") || "untitled";
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const payload = await request(instance, "POST", "/api/notes");
       if (title !== "untitled") {
         await request(instance, "PUT", `/api/notes/${payload.note.id}`, { title, markdown: "" });
@@ -398,6 +412,8 @@ if (isShareInstance(instance)) {
         console.error("Usage: jot <instance> delete-thread <noteId> <threadId>");
         process.exit(1);
       }
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       await request(instance, "DELETE", `/api/notes/${noteId}/threads/${threadId}`);
       console.log("Thread deleted");
       break;
@@ -423,6 +439,8 @@ if (isShareInstance(instance)) {
         console.error("Usage: jot <instance> delete-comment <noteId> <messageId>");
         process.exit(1);
       }
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       await request(instance, "DELETE", `/api/notes/${noteId}/messages/${messageId}`);
       console.log("Comment deleted");
       break;
@@ -458,6 +476,8 @@ if (isShareInstance(instance)) {
         process.exit(1);
       }
       if (!access) {
+        // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+        // @ts-expect-error
         const payload = await request(instance, "GET", `/api/notes/${noteId}`);
         const note = payload.note;
         console.log(`${note.id}\t${note.shareAccess}\t${note.shareUrl}`);
@@ -468,6 +488,8 @@ if (isShareInstance(instance)) {
         process.exit(1);
       }
       await request(instance, "PUT", `/api/notes/${noteId}`, { shareAccess: access });
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       const readPayload = await request(instance, "GET", `/api/notes/${noteId}`);
       console.log(`${noteId}\t${readPayload.note.shareAccess}\t${readPayload.note.shareUrl}`);
       break;
@@ -485,13 +507,27 @@ if (isShareInstance(instance)) {
 
       const body = {};
       if (field === "title") {
+        // TODO(ts): TS2339 Property 'title' does not exist on type '{}'.
+        // @ts-expect-error
         body.title = value;
+        // TODO(ts): TS2339 Property 'markdown' does not exist on type '{}'.
+        // @ts-expect-error
         body.markdown = undefined;
+        // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+        // @ts-expect-error
         const current = await request(instance, "GET", `/api/notes/${noteId}`);
+        // TODO(ts): TS2339 Property 'markdown' does not exist on type '{}'.
+        // @ts-expect-error
         body.markdown = current.note.markdown;
       } else if (field === "markdown") {
+        // TODO(ts): TS2339 Property 'markdown' does not exist on type '{}'.
+        // @ts-expect-error
         body.markdown = value;
+        // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+        // @ts-expect-error
         const current = await request(instance, "GET", `/api/notes/${noteId}`);
+        // TODO(ts): TS2339 Property 'title' does not exist on type '{}'.
+        // @ts-expect-error
         body.title = current.note.title;
       } else {
         console.error(`Unknown field: ${field}. Use 'title' or 'markdown'.`);
@@ -509,6 +545,8 @@ if (isShareInstance(instance)) {
         console.error("Usage: jot <instance> delete <id>");
         process.exit(1);
       }
+      // TODO(ts): TS2554 Expected 4 arguments, but got 3.
+      // @ts-expect-error
       await request(instance, "DELETE", `/api/notes/${noteId}`);
       console.log(`Deleted ${noteId}`);
       break;

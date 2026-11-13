@@ -9,7 +9,7 @@ import {
   collabToMarkdown,
   idAtIndex,
   loadCollabState,
-} from "../../src/collab";
+} from "../../server/collab";
 import { createNote, startTestServer, writeLegacyNote, type TestServer } from "../helpers/server-harness";
 import { FakeWsClient, type ServerMessage } from "../helpers/ws-client";
 

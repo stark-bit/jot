@@ -11,11 +11,15 @@ export type CliResult = {
 
 export function runCli(args: string[], home: string, timeoutMs = 20000): Promise<CliResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(repoRoot, "cli", "jot.mjs"), ...args], {
-      cwd: repoRoot,
-      env: { ...process.env, HOME: home },
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    const child = spawn(
+      process.execPath,
+      [path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs"), path.join(repoRoot, "cli", "jot.mts"), ...args],
+      {
+        cwd: repoRoot,
+        env: { ...process.env, HOME: home },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk: Buffer) => {

@@ -8,10 +8,16 @@ function idsEqual(a, b) {
 
 export class SimpleIdList {
   constructor(entries = []) {
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     this.entries = entries;
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     this.length = 0;
     for (const entry of entries) {
       if (!entry.isDeleted) {
+        // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+        // @ts-expect-error
         this.length++;
       }
     }
@@ -31,11 +37,17 @@ export class SimpleIdList {
   }
 
   clone() {
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     return new SimpleIdList(this.entries.map((entry) => ({ id: cloneId(entry.id), isDeleted: entry.isDeleted })));
   }
 
   findKnownIndex(id) {
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     for (let index = 0; index < this.entries.length; index++) {
+      // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+      // @ts-expect-error
       const entry = this.entries[index];
       if (idsEqual(entry.id, id)) {
         return index;
@@ -46,6 +58,8 @@ export class SimpleIdList {
 
   has(id) {
     const knownIndex = this.findKnownIndex(id);
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     return knownIndex !== -1 && !this.entries[knownIndex].isDeleted;
   }
 
@@ -54,10 +68,14 @@ export class SimpleIdList {
   }
 
   at(index) {
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     if (!Number.isInteger(index) || index < 0 || index >= this.length) {
       throw new Error(`Index out of bounds: ${index}`);
     }
     let visibleIndex = 0;
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     for (const entry of this.entries) {
       if (entry.isDeleted) {
         continue;
@@ -78,11 +96,15 @@ export class SimpleIdList {
 
     let visibleBefore = 0;
     for (let index = 0; index < knownIndex; index++) {
+      // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+      // @ts-expect-error
       if (!this.entries[index].isDeleted) {
         visibleBefore++;
       }
     }
 
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     if (!this.entries[knownIndex].isDeleted) {
       return visibleBefore;
     }
@@ -97,12 +119,16 @@ export class SimpleIdList {
   }
 
   cursorAt(index, bind = "left") {
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     if (!Number.isInteger(index) || index < 0 || index > this.length) {
       throw new Error(`Cursor index out of bounds: ${index}`);
     }
     if (bind === "left") {
       return index === 0 ? null : this.at(index - 1);
     }
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     return index === this.length ? null : this.at(index);
   }
 
@@ -110,11 +136,15 @@ export class SimpleIdList {
     if (bind === "left") {
       return cursor === null ? 0 : this.indexOf(cursor, "left") + 1;
     }
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     return cursor === null ? this.length : this.indexOf(cursor, "right");
   }
 
   maxCounter(bunchId) {
     let max;
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     for (const entry of this.entries) {
       if (entry.id.bunchId === bunchId) {
         if (max === undefined || entry.id.counter > max) {
@@ -149,7 +179,11 @@ export class SimpleIdList {
         isDeleted: false,
       });
     }
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     this.entries.splice(insertAt, 0, ...inserted);
+    // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     this.length += count;
   }
 
@@ -159,7 +193,11 @@ export class SimpleIdList {
     }
     const knownIndexes = [];
     let visibleIndex = 0;
+    // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+    // @ts-expect-error
     for (let index = 0; index < this.entries.length; index++) {
+      // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+      // @ts-expect-error
       const entry = this.entries[index];
       if (entry.isDeleted) {
         continue;
@@ -174,8 +212,14 @@ export class SimpleIdList {
     }
 
     for (const knownIndex of knownIndexes) {
+      // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+      // @ts-expect-error
       if (!this.entries[knownIndex].isDeleted) {
+        // TODO(ts): TS2339 Property 'entries' does not exist on type 'SimpleIdList'.
+        // @ts-expect-error
         this.entries[knownIndex] = { ...this.entries[knownIndex], isDeleted: true };
+        // TODO(ts): TS2339 Property 'length' does not exist on type 'SimpleIdList'.
+        // @ts-expect-error
         this.length--;
       }
     }
@@ -184,34 +228,60 @@ export class SimpleIdList {
 
 export class TrackedIdList {
   constructor(idList, trackChanges) {
+    // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+    // @ts-expect-error
     this._idList = idList;
+    // TODO(ts): TS2339 Property 'trackChanges' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     this.trackChanges = trackChanges;
+    // TODO(ts): TS2339 Property 'updates' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     this.updates = [];
   }
 
   get idList() {
+    // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+    // @ts-expect-error
     return this._idList;
   }
 
   getAndResetUpdates() {
+    // TODO(ts): TS2339 Property 'trackChanges' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     if (!this.trackChanges) {
       throw new Error("trackChanges not enabled");
     }
+    // TODO(ts): TS2339 Property 'updates' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     const updates = this.updates;
+    // TODO(ts): TS2339 Property 'updates' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     this.updates = [];
     return updates;
   }
 
   insertAfter(before, id, count = 1) {
+    // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+    // @ts-expect-error
     this._idList.insertAfter(before, id, count);
+    // TODO(ts): TS2339 Property 'trackChanges' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     if (this.trackChanges) {
+      // TODO(ts): TS2339 Property 'updates' does not exist on type 'TrackedIdList'.
+      // @ts-expect-error
       this.updates.push({ type: "insertAfter", before: cloneId(before), id: cloneId(id), count });
     }
   }
 
   deleteRange(startIndex, endIndex) {
+    // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+    // @ts-expect-error
     this._idList.deleteRange(startIndex, endIndex);
+    // TODO(ts): TS2339 Property 'trackChanges' does not exist on type 'TrackedIdList'.
+    // @ts-expect-error
     if (this.trackChanges) {
+      // TODO(ts): TS2339 Property 'updates' does not exist on type 'TrackedIdList'.
+      // @ts-expect-error
       this.updates.push({ type: "deleteRange", startIndex, endIndex });
     }
   }
@@ -219,9 +289,13 @@ export class TrackedIdList {
   apply(update) {
     switch (update.type) {
       case "insertAfter":
+        // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+        // @ts-expect-error
         this._idList.insertAfter(update.before, update.id, update.count);
         return;
       case "deleteRange":
+        // TODO(ts): TS2551 Property '_idList' does not exist on type 'TrackedIdList'. Did you mean 'idList'?
+        // @ts-expect-error
         this._idList.deleteRange(update.startIndex, update.endIndex);
         return;
     }
@@ -230,7 +304,11 @@ export class TrackedIdList {
 
 export class ElementIdGenerator {
   constructor(newBunchId) {
+    // TODO(ts): TS2339 Property 'newBunchId' does not exist on type 'ElementIdGenerator'.
+    // @ts-expect-error
     this.newBunchId = newBunchId;
+    // TODO(ts): TS2339 Property 'nextCounterMap' does not exist on type 'ElementIdGenerator'.
+    // @ts-expect-error
     this.nextCounterMap = new Map();
   }
 
@@ -240,15 +318,23 @@ export class ElementIdGenerator {
     }
 
     if (beforeId) {
+      // TODO(ts): TS2339 Property 'nextCounterMap' does not exist on type 'ElementIdGenerator'.
+      // @ts-expect-error
       const nextCounter = this.nextCounterMap.get(beforeId.bunchId) || 0;
       if (beforeId.counter + 1 >= nextCounter) {
         const counter = beforeId.counter + 1;
+        // TODO(ts): TS2339 Property 'nextCounterMap' does not exist on type 'ElementIdGenerator'.
+        // @ts-expect-error
         this.nextCounterMap.set(beforeId.bunchId, counter + count);
         return { bunchId: beforeId.bunchId, counter };
       }
     }
 
+    // TODO(ts): TS2339 Property 'newBunchId' does not exist on type 'ElementIdGenerator'.
+    // @ts-expect-error
     const bunchId = this.newBunchId();
+    // TODO(ts): TS2339 Property 'nextCounterMap' does not exist on type 'ElementIdGenerator'.
+    // @ts-expect-error
     this.nextCounterMap.set(bunchId, count);
     return { bunchId, counter: 0 };
   }

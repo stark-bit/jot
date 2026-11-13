@@ -28,12 +28,18 @@ const ICONS = {
     '<svg viewBox="0 0 16 16"><rect x="3" y="5.5" width="10" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.5V3.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="2.5" r="1" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="9" r="1" fill="currentColor"/><circle cx="10" cy="9" r="1" fill="currentColor"/><path d="M6.5 11.5h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M1 8.5h2M13 8.5h2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
 };
 
+// TODO(ts): TS2339 Property '__ICONS__' does not exist on type 'Window & typeof globalThis'.
+// @ts-expect-error
 window.__ICONS__ = ICONS;
 
 // <jot-icon-button icon="plus" label="New note" size="md|sm">
 class JotIconButton extends HTMLElement {
   connectedCallback() {
+    // TODO(ts): TS2339 Property '_rendered' does not exist on type 'JotIconButton'.
+    // @ts-expect-error
     if (this._rendered) return;
+    // TODO(ts): TS2339 Property '_rendered' does not exist on type 'JotIconButton'.
+    // @ts-expect-error
     this._rendered = true;
     const icon = this.getAttribute("icon") || "";
     const label = this.getAttribute("label") || "";
@@ -52,7 +58,11 @@ class JotIconButton extends HTMLElement {
 // <jot-button variant="primary|ghost|danger|link" size="md|sm">Label</jot-button>
 class JotButton extends HTMLElement {
   connectedCallback() {
+    // TODO(ts): TS2339 Property '_rendered' does not exist on type 'JotButton'.
+    // @ts-expect-error
     if (this._rendered) return;
+    // TODO(ts): TS2339 Property '_rendered' does not exist on type 'JotButton'.
+    // @ts-expect-error
     this._rendered = true;
     const variant = this.getAttribute("variant") || "default";
     const size = this.getAttribute("size") || "md";

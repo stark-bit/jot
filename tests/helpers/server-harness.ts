@@ -5,12 +5,12 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 
-// Ascend to the directory containing src/server.ts; works under vitest,
+// Ascend to the directory containing server/server.ts; works under vitest,
 // playwright, and tsx regardless of module format.
 function findRepoRoot(startDir: string): string {
   let dir = path.resolve(startDir);
   for (;;) {
-    if (fs.existsSync(path.join(dir, "src", "server.ts"))) {
+    if (fs.existsSync(path.join(dir, "server", "server.ts"))) {
       return dir;
     }
     const parent = path.dirname(dir);
@@ -95,7 +95,7 @@ async function launchServer(port: number, dataDir: string): Promise<ChildProcess
     process.execPath,
     [
       path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs"),
-      "src/server.ts",
+      "server/server.ts",
       `--port=${port}`,
       `--data=${dataDir}`,
     ],

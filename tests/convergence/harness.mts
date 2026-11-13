@@ -14,14 +14,14 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { ClientMutation, CollabState, ElementId } from "../../src/collab";
+import type { ClientMutation, CollabState, ElementId } from "../../server/collab";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const collabModule = process.env.JOT_COLLAB_MODULE || path.join(here, "../../src/collab");
+const collabModule = process.env.JOT_COLLAB_MODULE || path.join(here, "../../server/collab");
 const collab = await import(path.resolve(collabModule));
 
 const { applyClientMutations, collabFromMarkdown, collabToMarkdown, loadCollabState, saveCollabState } =
-  collab as typeof import("../../src/collab");
+  collab as typeof import("../../server/collab");
 
 type Args = {
   seeds: number;

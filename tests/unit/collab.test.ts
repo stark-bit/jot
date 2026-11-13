@@ -12,7 +12,7 @@ import {
   loadCollabState,
   newCollabState,
   saveCollabState,
-} from "../../src/collab";
+} from "../../server/collab";
 import { IdList, type ElementId } from "articulated";
 
 function emptyTracked(): TrackedIdList {

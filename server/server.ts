@@ -129,7 +129,9 @@ const port = Number(cliArg("port") || process.env.PORT || 3210);
 const dataDir = cliArg("data") || process.env.DATA_DIR || path.join(process.cwd(), "data");
 const notesDir = path.join(dataDir, "notes");
 const authFilePath = path.join(dataDir, "auth.json");
-const publicDir = path.join(path.resolve(__dirname, ".."), "public");
+// Repo root: one level up from server/ (tsx), two levels up from dist/server/ (compiled).
+const rootDir = path.resolve(__dirname, path.basename(path.dirname(__dirname)) === "dist" ? "../.." : "..");
+const publicDir = path.join(rootDir, "dist", "public");
 
 // Hash public assets to bust browser cache.
 const staticVersion = (() => {
@@ -183,7 +185,7 @@ app.set("trust proxy", true);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use("/static", express.static(publicDir));
-app.use("/static/mermaid", express.static(path.join(path.resolve(__dirname, ".."), "node_modules", "mermaid", "dist")));
+app.use("/static/mermaid", express.static(path.join(rootDir, "node_modules", "mermaid", "dist")));
 
 app.get("/health", (_req, res) => {
   res.type("text/plain").send("ok");

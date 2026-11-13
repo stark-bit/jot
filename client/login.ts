@@ -1,5 +1,7 @@
 (() => {
   const mode = document.body.dataset.authMode;
+  // TODO(ts): TS2339 Property '__OWNER_TOKEN_KEY__' does not exist on type 'Window & typeof globalThis'.
+  // @ts-expect-error
   const ownerTokenKey = window.__OWNER_TOKEN_KEY__ || "md_owner_token";
   const form = document.getElementById("auth-form");
   const errorNode = document.getElementById("auth-error");
@@ -17,6 +19,8 @@
     event.preventDefault();
     setError("");
 
+    // TODO(ts): TS2345 Argument of type 'HTMLElement' is not assignable to parameter of type 'HTMLFormElement'.
+    // @ts-expect-error
     const formData = new FormData(form);
     const body = Object.fromEntries(formData.entries());
     const endpoint = mode === "setup" ? "/api/auth/setup" : "/api/auth/login";
@@ -48,8 +52,14 @@
 
   async function api(url, options = {}) {
     const response = await fetch(url, {
+      // TODO(ts): TS2339 Property 'method' does not exist on type '{}'.
+      // @ts-expect-error
       method: options.method || "GET",
+      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
+      // @ts-expect-error
       headers: options.body ? { "Content-Type": "application/json" } : undefined,
+      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
+      // @ts-expect-error
       body: options.body ? JSON.stringify(options.body) : undefined,
       credentials: "same-origin",
     });

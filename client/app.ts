@@ -1,4 +1,6 @@
 (() => {
+  // TODO(ts): TS2339 Property '__OWNER_TOKEN_KEY__' does not exist on type 'Window & typeof globalThis'.
+  // @ts-expect-error
   const ownerTokenKey = window.__OWNER_TOKEN_KEY__ || "md_owner_token";
   const app = document.getElementById("app");
   const page = document.body.dataset.page;
@@ -22,6 +24,8 @@
     syncAppHeight();
   }
 
+  // TODO(ts): TS2339 Property '__themeIcon' does not exist on type 'Window & typeof globalThis'.
+  // @ts-expect-error
   const themeIcon = window.__themeIcon || ((t) => (t === "dark" ? "☀" : "☾"));
 
   let mermaidIdCounter = 0;
@@ -41,21 +45,35 @@
     svgBtn("zoom-out", '<circle cx="8" cy="8" r="5.5"/><path d="M5.5 8h5"/>');
 
   async function renderMermaid(container) {
+    // TODO(ts): TS2339 Property '__mermaid' does not exist on type 'Window & typeof globalThis'.
+    // @ts-expect-error
     const m = window.__mermaid;
     if (!m || !container) return;
+    // TODO(ts): TS2339 Property 'textContent' does not exist on type 'unknown'.
+    // @ts-expect-error
     const freshNodes = Array.from(container.querySelectorAll("pre.mermaid")).filter((node) => node.textContent.trim());
 
     // Reuse cached wrappers for unchanged diagrams, preserving pan/zoom state
     const newCache = [];
     const toRender = [];
     freshNodes.forEach((node, i) => {
+      // TODO(ts): TS2339 Property 'textContent' does not exist on type 'unknown'.
+      // @ts-expect-error
       const src = node.textContent;
       if (mermaidCache[i] && mermaidCache[i].src === src) {
+        // TODO(ts): TS2339 Property 'replaceWith' does not exist on type 'unknown'.
+        // @ts-expect-error
         node.replaceWith(mermaidCache[i].wrap);
         newCache[i] = mermaidCache[i];
       } else {
+        // TODO(ts): TS2339 Property 'setAttribute' does not exist on type 'unknown'.
+        // @ts-expect-error
         node.setAttribute("data-original-code", src);
+        // TODO(ts): TS2339 Property 'removeAttribute' does not exist on type 'unknown'.
+        // @ts-expect-error
         node.removeAttribute("data-processed");
+        // TODO(ts): TS2339 Property 'id' does not exist on type 'unknown'.
+        // @ts-expect-error
         node.id = "mermaid-" + mermaidIdCounter++ + "-" + i;
         toRender.push({ node, index: i });
       }
@@ -86,6 +104,8 @@
           node.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
         }
         bar.addEventListener("click", (e) => {
+          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+          // @ts-expect-error
           const btn = e.target.closest("[data-action]");
           if (!btn) return;
           const action = btn.dataset.action;
@@ -113,7 +133,11 @@
     }
     mermaidCache = newCache;
   }
+  // TODO(ts): TS2339 Property '__renderMermaid' does not exist on type 'Window & typeof globalThis'.
+  // @ts-expect-error
   window.__renderMermaid = renderMermaid;
+  // TODO(ts): TS2339 Property '__clearMermaidCache' does not exist on type 'Window & typeof globalThis'.
+  // @ts-expect-error
   window.__clearMermaidCache = () => {
     mermaidCache = [];
   };
@@ -209,21 +233,29 @@
     searchInput.addEventListener("input", () => {
       clearTimeout(state.searchTimer);
       state.searchTimer = setTimeout(() => {
+        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
+        // @ts-expect-error
         loadNotes(searchInput.value);
       }, 160);
     });
 
     noteList.addEventListener("click", async (event) => {
       const deleteBtn =
+        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+        // @ts-expect-error
         event.target.closest(".note-delete-btn") || event.target.closest("jot-icon-button.note-delete-btn");
       if (deleteBtn) {
         event.stopPropagation();
         const id = deleteBtn.dataset.noteId;
         if (!id || !confirm("Delete this note?")) return;
         await api(`/api/notes/${id}`, { method: "DELETE" });
+        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
+        // @ts-expect-error
         loadNotes(searchInput.value);
         return;
       }
+      // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+      // @ts-expect-error
       const row = event.target.closest("[data-note-id]");
       if (!row) return;
       window.location.href = `/notes/${row.dataset.noteId}`;
@@ -272,6 +304,8 @@
 
       apiKeysList.addEventListener("click", async (event) => {
         const copyBtn =
+          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+          // @ts-expect-error
           event.target.closest("[data-copy-key]") || event.target.closest("jot-icon-button[data-copy-key]");
         if (copyBtn) {
           try {
@@ -282,6 +316,8 @@
           return;
         }
         const deleteBtn =
+          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+          // @ts-expect-error
           event.target.closest("[data-delete-key]") || event.target.closest("jot-icon-button[data-delete-key]");
         if (!deleteBtn) return;
         if (!confirm("Delete this API key?")) return;
@@ -328,6 +364,8 @@
       const hasNotes = response.notes.length > 0;
       const hasQuery = query.trim().length > 0;
 
+      // TODO(ts): TS2339 Property 'style' does not exist on type 'Element'.
+      // @ts-expect-error
       document.querySelector(".list-search-wrap").style.display = hasNotes || hasQuery ? "" : "none";
 
       if (!hasNotes && !hasQuery) {
@@ -463,6 +501,8 @@
 
     function initCollabEditor() {
       if (!editorTextarea) return;
+      // TODO(ts): TS2339 Property '__STATIC_VERSION__' does not exist on type 'Window & typeof globalThis'.
+      // @ts-expect-error
       const sv = window.__STATIC_VERSION__;
       import("/static/collab-editor.js" + (sv ? "?v=" + encodeURIComponent(sv) : "")).then(({ createCollabEditor }) => {
         createCollabEditor(editorTextarea, {
@@ -477,6 +517,8 @@
               markdown: payload.markdown,
             };
             if (refs.titleInput && document.activeElement !== refs.titleInput) {
+              // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
+              // @ts-expect-error
               refs.titleInput.value = payload.title;
             }
             if (refs.topbarTitle) refs.topbarTitle.textContent = payload.title || "untitled";
@@ -512,12 +554,18 @@
         if (!state.note) {
           return;
         }
+        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
+        // @ts-expect-error
         state.note.title = titleInput.value;
+        // TODO(ts): TS2554 Expected 0 arguments, but got 1.; TS2339 Property 'value' does not exist on type 'HTMLElement'.
+        // @ts-expect-error
         syncSidebarTitle(titleInput.value);
         clearTimeout(titleSaveTimer);
         titleSaveTimer = setTimeout(async () => {
           await api(`/api/notes/${noteId}`, {
             method: "PUT",
+            // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
+            // @ts-expect-error
             body: { title: titleInput.value },
           });
         }, 500);
@@ -692,6 +740,8 @@
       });
 
       noteSidebarList.addEventListener("click", (event) => {
+        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+        // @ts-expect-error
         const item = event.target.closest(".note-sidebar-item");
         if (item?.classList.contains("active")) {
           event.preventDefault();
@@ -702,6 +752,8 @@
       document.getElementById("noteSidebarBackdrop")?.addEventListener("click", closeDrawer);
 
       // Keep the current note's entry in sync with title edits.
+      // TODO(ts): TS2322 Type '(title: any) => void' is not assignable to type '() => void'.
+      // @ts-expect-error
       syncSidebarTitle = (title) => {
         const current = sidebarNotes.find((note) => note.id === noteId);
         if (current && current.title !== title) {
@@ -766,6 +818,8 @@
 
     if (previewCanvas)
       previewCanvas.addEventListener("click", (event) => {
+        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+        // @ts-expect-error
         if (event.target.closest(".thread-rail") || event.target.closest(".selection-bubble")) {
           return;
         }
@@ -799,7 +853,11 @@
 
     if (threadRail)
       threadRail.addEventListener("click", async (event) => {
+        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+        // @ts-expect-error
         const button = event.target.closest("[data-action]");
+        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
+        // @ts-expect-error
         const card = event.target.closest("[data-thread-id]");
 
         if (!button && card) {
@@ -845,6 +903,8 @@
         initCollabEditor();
       } else {
         if (shareAccess === "comment" && !payload.viewer.isOwner && !payload.viewer.commenterName) {
+          // TODO(ts): TS2554 Expected 3 arguments, but got 2.
+          // @ts-expect-error
           openIdentityModal(refs, true);
         }
         connectWebSocket(refs, isPublic);
@@ -928,6 +988,8 @@
           if (refsArg.titleInput && refsArg.titleInput.value !== payload.note.title) {
             refsArg.titleInput.value = payload.note.title;
           }
+          // TODO(ts): TS2554 Expected 0 arguments, but got 1.
+          // @ts-expect-error
           syncSidebarTitle(payload.note.title);
           setPreviewHtml(refsArg, payload.note.renderedHtml || "");
         }
@@ -1211,7 +1273,11 @@
       refs.saveStatus.textContent = value;
       refs.saveStatus.classList.remove("status-fade");
       if (value === "Saved") {
+        // TODO(ts): TS2339 Property 'statusFadeTimer' does not exist on type '{ page: string; noteId: string; shareId: string; shareAccess: string; note: any; viewer: any; threads: any[]; activeThreadId: any; visibleMatches: Map<any, any>; pendingAnchor: any; saveTimer: any; ... 6 more ...; modalOpen: boolean; }'.
+        // @ts-expect-error
         clearTimeout(state.statusFadeTimer);
+        // TODO(ts): TS2339 Property 'statusFadeTimer' does not exist on type '{ page: string; noteId: string; shareId: string; shareAccess: string; note: any; viewer: any; threads: any[]; activeThreadId: any; visibleMatches: Map<any, any>; pendingAnchor: any; saveTimer: any; ... 6 more ...; modalOpen: boolean; }'.
+        // @ts-expect-error
         state.statusFadeTimer = setTimeout(() => {
           refs.saveStatus.classList.add("status-fade");
         }, 1500);
@@ -1244,18 +1310,26 @@
     const copyBtn = popover.querySelector("#shareCopyBtn");
     select.addEventListener("change", async () => {
       if (!state.note) return;
+      // TODO(ts): TS2339 Property 'value' does not exist on type 'Element'.
+      // @ts-expect-error
       const val = select.value;
       state.note.shareAccess = val;
       await api(`/api/notes/${state.note.id}`, { method: "PUT", body: { shareAccess: val } });
       if (val === "none") {
+        // TODO(ts): TS2339 Property 'disabled' does not exist on type 'Element'.
+        // @ts-expect-error
         copyBtn.disabled = true;
         copyBtn.classList.add("share-copy-disabled");
       } else {
+        // TODO(ts): TS2339 Property 'disabled' does not exist on type 'Element'.
+        // @ts-expect-error
         copyBtn.disabled = false;
         copyBtn.classList.remove("share-copy-disabled");
       }
     });
     copyBtn.addEventListener("click", async () => {
+      // TODO(ts): TS2339 Property 'value' does not exist on type 'Element'.
+      // @ts-expect-error
       if (select.value === "none") return;
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -1568,8 +1642,12 @@
     const roots = [];
 
     for (const node of nodes.values()) {
+      // TODO(ts): TS2339 Property 'message' does not exist on type 'unknown'.
+      // @ts-expect-error
       const parentId = node.message.parentId;
       if (parentId && nodes.has(parentId)) {
+        // TODO(ts): TS2339 Property 'children' does not exist on type 'unknown'.
+        // @ts-expect-error
         nodes.get(parentId).children.push(node);
       } else {
         roots.push(node);
@@ -1602,11 +1680,15 @@
     if (!match) {
       return;
     }
+    // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.; TS2339 Property 'height' does not exist on type 'unknown'.
+    // @ts-expect-error
     const rects = Array.from(match.range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
     if (!rects.length) {
       return;
     }
     const canvasRect = refs.previewCanvas.getBoundingClientRect();
+    // TODO(ts): TS2339 Property 'top' does not exist on type 'unknown'.
+    // @ts-expect-error
     const targetTop = rects[0].top - canvasRect.top - 80;
     refs.previewScroll.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
   }
@@ -1684,6 +1766,8 @@
     const refs = options.refs;
 
     if (!state.viewer?.isOwner && !state.viewer?.commenterName) {
+      // TODO(ts): TS2554 Expected 3 arguments, but got 2.
+      // @ts-expect-error
       openIdentityModal(refs, true);
       return;
     }
@@ -1766,6 +1850,8 @@
         state.pendingAnchor = null;
         if (refs.selectionBubble) refs.selectionBubble.classList.add("hidden");
         updateCommentFab(refs);
+        // TODO(ts): TS2304 Cannot find name 'lastThreadsUpdate'.
+        // @ts-expect-error
         lastThreadsUpdate = Date.now();
         syncThreadLayout(refs);
         if (reopenThreadId) {
@@ -1824,11 +1910,15 @@
 
     const firstInput = form.querySelector("textarea, input");
     if (firstInput) {
+      // TODO(ts): TS2339 Property 'focus' does not exist on type 'Element'.
+      // @ts-expect-error
       setTimeout(() => firstInput.focus(), 50);
     }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      // TODO(ts): TS2345 Argument of type 'HTMLElement' is not assignable to parameter of type 'HTMLFormElement'.
+      // @ts-expect-error
       const formData = new FormData(form);
       const values = Object.fromEntries(formData.entries());
       errorNode.classList.add("hidden");
@@ -1975,11 +2065,21 @@
 
   function mergeRects(rects, canvasRect) {
     const items = Array.from(rects)
+      // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.; TS2339 Property 'height' does not exist on type 'unknown'.
+      // @ts-expect-error
       .filter((r) => r.width > 0 && r.height > 0)
       .map((r) => ({
+        // TODO(ts): TS2339 Property 'left' does not exist on type 'unknown'.
+        // @ts-expect-error
         left: r.left - canvasRect.left,
+        // TODO(ts): TS2339 Property 'top' does not exist on type 'unknown'.
+        // @ts-expect-error
         top: r.top - canvasRect.top,
+        // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.
+        // @ts-expect-error
         width: r.width,
+        // TODO(ts): TS2339 Property 'height' does not exist on type 'unknown'.
+        // @ts-expect-error
         height: r.height,
       }))
       .sort((a, b) => a.top - b.top || a.left - b.left);
@@ -2189,8 +2289,14 @@
 
   async function api(url, options = {}) {
     const response = await fetch(url, {
+      // TODO(ts): TS2339 Property 'method' does not exist on type '{}'.
+      // @ts-expect-error
       method: options.method || "GET",
+      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
+      // @ts-expect-error
       headers: options.body ? { "Content-Type": "application/json" } : undefined,
+      // TODO(ts): TS2339 Property 'body' does not exist on type '{}'.
+      // @ts-expect-error
       body: options.body ? JSON.stringify(options.body) : undefined,
       credentials: "same-origin",
     });

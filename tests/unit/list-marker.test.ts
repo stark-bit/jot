@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 // @ts-expect-error plain browser ES module, no types
-import { listMarkerAt } from "../../public/collab-editor.js";
+import { listMarkerAt } from "../../client/collab-editor";
 
 describe("listMarkerAt", () => {
   it("bullets continue as bullets", () => {

@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
+  "jsPlugins": ["eslint-plugin-boundaries"],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
@@ -9,30 +10,157 @@
     "builtin": true,
     "es2022": true
   },
+  "settings": {
+    "boundaries/elements": [
+      {
+        "type": "server",
+        "pattern": "server"
+      },
+      {
+        "type": "client",
+        "pattern": "client"
+      },
+      {
+        "type": "shared",
+        "pattern": "shared"
+      },
+      {
+        "type": "cli",
+        "pattern": "cli"
+      }
+    ],
+    "import/resolver": {
+      "typescript": {
+        "project": ["server/tsconfig.json", "client/tsconfig.json", "cli/tsconfig.json"],
+        "noWarnOnMultipleProjects": true
+      }
+    }
+  },
   "rules": {
     "no-underscore-dangle": "off",
     "unicorn/no-array-sort": "off",
     "unicorn/prefer-add-event-listener": "off",
     "unicorn/no-useless-spread": "off",
     "no-unused-vars": "warn",
-    "unicorn/no-useless-fallback-in-spread": "warn"
+    "unicorn/no-useless-fallback-in-spread": "warn",
+    "boundaries/dependencies": [
+      "error",
+      {
+        "default": "allow",
+        "policies": [
+          {
+            "from": {
+              "element": {
+                "type": "client"
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "type": "server"
+                }
+              }
+            },
+            "message": "client/ must not import server/ (share types via shared/)"
+          },
+          {
+            "from": {
+              "element": {
+                "type": "server"
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "type": "client"
+                }
+              }
+            },
+            "message": "server/ must not import client/ (share types via shared/)"
+          },
+          {
+            "from": {
+              "element": {
+                "types": ["server", "client"]
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "type": "shared"
+                }
+              },
+              "dependency": {
+                "kind": "value"
+              }
+            },
+            "message": "Only type imports from shared/ are allowed (use `import type`)"
+          },
+          {
+            "from": {
+              "element": {
+                "type": "shared"
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "types": ["server", "client", "cli"]
+                }
+              }
+            },
+            "message": "shared/ must not import server/, client/ or cli/"
+          },
+          {
+            "from": {
+              "element": {
+                "type": "cli"
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "types": ["server", "client", "shared"]
+                }
+              }
+            },
+            "message": "cli/ talks to the server over HTTP; it must not import server/, client/ or shared/"
+          },
+          {
+            "from": {
+              "element": {
+                "types": ["server", "client", "shared"]
+              }
+            },
+            "disallow": {
+              "to": {
+                "element": {
+                  "type": "cli"
+                }
+              }
+            },
+            "message": "Nothing may import cli/"
+          }
+        ]
+      }
+    ]
   },
   "ignorePatterns": ["dist/**", "data/**", "test-results/**", "playwright-report/**"],
   "overrides": [
     {
-      "files": ["public/**/*.js"],
+      "files": ["client/**/*.ts"],
       "env": {
         "browser": true
       }
     },
     {
-      "files": ["src/**/*.ts", "cli/**/*.mjs", "tests/**/*.{ts,mts}", "*.config.ts"],
+      "files": ["server/**/*.ts", "shared/**/*.ts", "cli/**/*.mts", "tests/**/*.{ts,mts}", "*.config.ts"],
       "env": {
         "node": true
       }
     },
     {
-      "files": ["public/app.js"],
+      "files": ["client/app.ts"],
       "rules": {
         "unicorn/consistent-function-scoping": "off"
       }
