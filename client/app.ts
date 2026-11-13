@@ -177,6 +177,9 @@
     modalOpen: false,
   };
 
+  // Shared by reloadThreads and openComposerModal to skip the echoed threads-updated refetch.
+  let lastThreadsUpdate = 0;
+
   if (page === "list") {
     initListPage();
     return;
@@ -1000,8 +1003,6 @@
       }
       syncThreadLayout(refsArg);
     }
-
-    let lastThreadsUpdate = 0;
 
     async function reloadThreads(publicMode) {
       if (!state.note) return;
@@ -1850,8 +1851,6 @@
         state.pendingAnchor = null;
         if (refs.selectionBubble) refs.selectionBubble.classList.add("hidden");
         updateCommentFab(refs);
-        // TODO(ts): TS2304 Cannot find name 'lastThreadsUpdate'.
-        // @ts-expect-error
         lastThreadsUpdate = Date.now();
         syncThreadLayout(refs);
         if (reopenThreadId) {
