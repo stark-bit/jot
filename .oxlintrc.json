@@ -1,0 +1,51 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "builtin": true,
+    "es2022": true
+  },
+  "rules": {
+    "no-underscore-dangle": "off",
+    "unicorn/no-array-sort": "off",
+    "unicorn/prefer-add-event-listener": "off",
+    "unicorn/no-useless-spread": "off"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "data/**",
+    "test-results/**",
+    "playwright-report/**"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "public/**/*.js"
+      ],
+      "env": {
+        "browser": true
+      }
+    },
+    {
+      "files": [
+        "src/**/*.ts",
+        "cli/**/*.mjs",
+        "tests/**/*.{ts,mts}",
+        "*.config.ts"
+      ],
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}
