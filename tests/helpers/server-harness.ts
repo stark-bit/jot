@@ -32,6 +32,9 @@ export type TestServer = {
   ownerPassword: string;
   apiKey: string;
   requestPath(path: string, init?: RequestInit): Promise<Response>;
+  // Kills the server process and starts a fresh one on the same port and data
+  // directory. Owner session and API key stay valid (they live in auth.json).
+  restart(): Promise<void>;
   stop(): Promise<void>;
 };
 
@@ -87,12 +90,7 @@ export function writeLegacyNote(dataDir: string, id: string, title: string, mark
   );
 }
 
-export async function startTestServer(options: { beforeStart?: (dataDir: string) => void } = {}): Promise<TestServer> {
-  const port = await getFreePort();
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "jot-test-"));
-  fs.mkdirSync(path.join(dataDir, "notes"), { recursive: true });
-  options.beforeStart?.(dataDir);
-
+async function launchServer(port: number, dataDir: string): Promise<ChildProcess> {
   const child = spawn(
     process.execPath,
     [
@@ -132,6 +130,32 @@ export async function startTestServer(options: { beforeStart?: (dataDir: string)
     child.kill("SIGTERM");
     throw new Error(`test server failed to start:\n${output.join("")}`);
   }
+  return child;
+}
+
+async function killServer(child: ChildProcess) {
+  if (child.exitCode !== null) return;
+  child.kill("SIGTERM");
+  await new Promise<void>((resolve) => {
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      resolve();
+    }, 3000);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+export async function startTestServer(options: { beforeStart?: (dataDir: string) => void } = {}): Promise<TestServer> {
+  const port = await getFreePort();
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "jot-test-"));
+  fs.mkdirSync(path.join(dataDir, "notes"), { recursive: true });
+  options.beforeStart?.(dataDir);
+
+  let child = await launchServer(port, dataDir);
+  const baseUrl = `http://127.0.0.1:${port}`;
 
   const ownerPassword = crypto.randomBytes(12).toString("base64url");
   const setupResponse = await fetch(
@@ -167,7 +191,9 @@ export async function startTestServer(options: { beforeStart?: (dataDir: string)
     port,
     baseUrl,
     dataDir,
-    child,
+    get child() {
+      return child;
+    },
     ownerCookie,
     ownerPassword,
     apiKey,
@@ -183,20 +209,12 @@ export async function startTestServer(options: { beforeStart?: (dataDir: string)
       }
       return fetch(`${baseUrl}${requestPath}`, { ...init, headers, body });
     },
+    async restart() {
+      await killServer(child);
+      child = await launchServer(port, dataDir);
+    },
     async stop() {
-      if (child.exitCode === null) {
-        child.kill("SIGTERM");
-        await new Promise<void>((resolve) => {
-          const timer = setTimeout(() => {
-            child.kill("SIGKILL");
-            resolve();
-          }, 3000);
-          child.once("exit", () => {
-            clearTimeout(timer);
-            resolve();
-          });
-        });
-      }
+      await killServer(child);
       fs.rmSync(dataDir, { recursive: true, force: true });
     },
   };
