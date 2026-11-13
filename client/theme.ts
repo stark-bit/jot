@@ -41,9 +41,7 @@
   };
 
   document.addEventListener("click", function (event) {
-    // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-    // @ts-expect-error
-    if (event.target.closest && event.target.closest(".theme-toggle")) {
+    if ((event.target as Element).closest && (event.target as Element).closest(".theme-toggle")) {
       window.__toggleTheme();
     }
   });

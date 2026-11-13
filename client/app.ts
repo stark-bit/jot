@@ -44,34 +44,22 @@ export {};
     svgBtn("down", '<path d="M4 6l4 4 4-4"/>') +
     svgBtn("zoom-out", '<circle cx="8" cy="8" r="5.5"/><path d="M5.5 8h5"/>');
 
-  async function renderMermaid(container) {
+  async function renderMermaid(container: Element) {
     const m = window.__mermaid;
     if (!m || !container) return;
-    // TODO(ts): TS2339 Property 'textContent' does not exist on type 'unknown'.
-    // @ts-expect-error
     const freshNodes = Array.from(container.querySelectorAll("pre.mermaid")).filter((node) => node.textContent.trim());
 
     // Reuse cached wrappers for unchanged diagrams, preserving pan/zoom state
     const newCache = [];
     const toRender = [];
     freshNodes.forEach((node, i) => {
-      // TODO(ts): TS2339 Property 'textContent' does not exist on type 'unknown'.
-      // @ts-expect-error
       const src = node.textContent;
       if (mermaidCache[i] && mermaidCache[i].src === src) {
-        // TODO(ts): TS2339 Property 'replaceWith' does not exist on type 'unknown'.
-        // @ts-expect-error
         node.replaceWith(mermaidCache[i].wrap);
         newCache[i] = mermaidCache[i];
       } else {
-        // TODO(ts): TS2339 Property 'setAttribute' does not exist on type 'unknown'.
-        // @ts-expect-error
         node.setAttribute("data-original-code", src);
-        // TODO(ts): TS2339 Property 'removeAttribute' does not exist on type 'unknown'.
-        // @ts-expect-error
         node.removeAttribute("data-processed");
-        // TODO(ts): TS2339 Property 'id' does not exist on type 'unknown'.
-        // @ts-expect-error
         node.id = "mermaid-" + mermaidIdCounter++ + "-" + i;
         toRender.push({ node, index: i });
       }
@@ -102,9 +90,7 @@ export {};
           node.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
         }
         bar.addEventListener("click", (e) => {
-          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-          // @ts-expect-error
-          const btn = e.target.closest("[data-action]");
+          const btn = (e.target as Element).closest<HTMLElement>("[data-action]");
           if (!btn) return;
           const action = btn.dataset.action;
           if (action === "zoom-in") {
@@ -212,7 +198,7 @@ export {};
       </div>
     `;
 
-    const searchInput = document.getElementById("searchInput");
+    const searchInput = document.getElementById("searchInput") as HTMLInputElement;
     const noteList = document.getElementById("noteList");
     const newNoteButton = document.getElementById("newNoteButton");
     const settingsButton = document.getElementById("settingsButton");
@@ -230,30 +216,23 @@ export {};
     searchInput.addEventListener("input", () => {
       clearTimeout(state.searchTimer);
       state.searchTimer = setTimeout(() => {
-        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
-        // @ts-expect-error
         loadNotes(searchInput.value);
       }, 160);
     });
 
     noteList.addEventListener("click", async (event) => {
       const deleteBtn =
-        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-        // @ts-expect-error
-        event.target.closest(".note-delete-btn") || event.target.closest("jot-icon-button.note-delete-btn");
+        (event.target as Element).closest<HTMLElement>(".note-delete-btn") ||
+        (event.target as Element).closest<HTMLElement>("jot-icon-button.note-delete-btn");
       if (deleteBtn) {
         event.stopPropagation();
         const id = deleteBtn.dataset.noteId;
         if (!id || !confirm("Delete this note?")) return;
         await api(`/api/notes/${id}`, { method: "DELETE" });
-        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
-        // @ts-expect-error
         loadNotes(searchInput.value);
         return;
       }
-      // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-      // @ts-expect-error
-      const row = event.target.closest("[data-note-id]");
+      const row = (event.target as Element).closest<HTMLElement>("[data-note-id]");
       if (!row) return;
       window.location.href = `/notes/${row.dataset.noteId}`;
     });
@@ -301,9 +280,8 @@ export {};
 
       apiKeysList.addEventListener("click", async (event) => {
         const copyBtn =
-          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-          // @ts-expect-error
-          event.target.closest("[data-copy-key]") || event.target.closest("jot-icon-button[data-copy-key]");
+          (event.target as Element).closest<HTMLElement>("[data-copy-key]") ||
+          (event.target as Element).closest<HTMLElement>("jot-icon-button[data-copy-key]");
         if (copyBtn) {
           try {
             await navigator.clipboard.writeText(copyBtn.dataset.copyKey);
@@ -313,9 +291,8 @@ export {};
           return;
         }
         const deleteBtn =
-          // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-          // @ts-expect-error
-          event.target.closest("[data-delete-key]") || event.target.closest("jot-icon-button[data-delete-key]");
+          (event.target as Element).closest<HTMLElement>("[data-delete-key]") ||
+          (event.target as Element).closest<HTMLElement>("jot-icon-button[data-delete-key]");
         if (!deleteBtn) return;
         if (!confirm("Delete this API key?")) return;
         await api(`/api/keys/${deleteBtn.dataset.deleteKey}`, { method: "DELETE" });
@@ -361,9 +338,7 @@ export {};
       const hasNotes = response.notes.length > 0;
       const hasQuery = query.trim().length > 0;
 
-      // TODO(ts): TS2339 Property 'style' does not exist on type 'Element'.
-      // @ts-expect-error
-      document.querySelector(".list-search-wrap").style.display = hasNotes || hasQuery ? "" : "none";
+      document.querySelector<HTMLElement>(".list-search-wrap").style.display = hasNotes || hasQuery ? "" : "none";
 
       if (!hasNotes && !hasQuery) {
         noteList.innerHTML = `<div class="empty-state-create"><p class="empty-state-text">No notes yet.</p><jot-button variant="primary" id="emptyCreateBtn">Create note</jot-button></div>`;
@@ -410,7 +385,7 @@ export {};
     const selectionBubble = document.getElementById("selectionBubble");
     const modalBackdrop = document.getElementById("modalBackdrop");
     const topbarTitle = document.getElementById("topbarTitle");
-    const titleInput = document.getElementById("titleInput");
+    const titleInput = document.getElementById("titleInput") as HTMLInputElement;
     const editorTextarea = document.getElementById("editorTextarea");
     const shareButton = document.getElementById("shareButton");
     const notesButton = document.getElementById("notesButton");
@@ -424,7 +399,7 @@ export {};
     const previewFab = document.getElementById("previewFab");
     const previewCloseButton = document.getElementById("previewCloseButton");
     // Replaced by the note sidebar setup below when the sidebar exists.
-    let syncSidebarTitle = () => {};
+    let syncSidebarTitle: (title: string) => void = () => {};
 
     const refs = {
       previewScroll,
@@ -512,8 +487,6 @@ export {};
               markdown: payload.markdown,
             };
             if (refs.titleInput && document.activeElement !== refs.titleInput) {
-              // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
-              // @ts-expect-error
               refs.titleInput.value = payload.title;
             }
             if (refs.topbarTitle) refs.topbarTitle.textContent = payload.title || "untitled";
@@ -549,18 +522,12 @@ export {};
         if (!state.note) {
           return;
         }
-        // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
-        // @ts-expect-error
         state.note.title = titleInput.value;
-        // TODO(ts): TS2554 Expected 0 arguments, but got 1.; TS2339 Property 'value' does not exist on type 'HTMLElement'.
-        // @ts-expect-error
         syncSidebarTitle(titleInput.value);
         clearTimeout(titleSaveTimer);
         titleSaveTimer = setTimeout(async () => {
           await api(`/api/notes/${noteId}`, {
             method: "PUT",
-            // TODO(ts): TS2339 Property 'value' does not exist on type 'HTMLElement'.
-            // @ts-expect-error
             body: { title: titleInput.value },
           });
         }, 500);
@@ -735,9 +702,7 @@ export {};
       });
 
       noteSidebarList.addEventListener("click", (event) => {
-        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-        // @ts-expect-error
-        const item = event.target.closest(".note-sidebar-item");
+        const item = (event.target as Element).closest<HTMLElement>(".note-sidebar-item");
         if (item?.classList.contains("active")) {
           event.preventDefault();
           if (isDrawerOpen()) closeDrawer();
@@ -747,8 +712,6 @@ export {};
       document.getElementById("noteSidebarBackdrop")?.addEventListener("click", closeDrawer);
 
       // Keep the current note's entry in sync with title edits.
-      // TODO(ts): TS2322 Type '(title: any) => void' is not assignable to type '() => void'.
-      // @ts-expect-error
       syncSidebarTitle = (title) => {
         const current = sidebarNotes.find((note) => note.id === noteId);
         if (current && current.title !== title) {
@@ -813,9 +776,10 @@ export {};
 
     if (previewCanvas)
       previewCanvas.addEventListener("click", (event) => {
-        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-        // @ts-expect-error
-        if (event.target.closest(".thread-rail") || event.target.closest(".selection-bubble")) {
+        if (
+          (event.target as Element).closest<HTMLElement>(".thread-rail") ||
+          (event.target as Element).closest<HTMLElement>(".selection-bubble")
+        ) {
           return;
         }
         const threadId = findAnchorAtPoint(event.clientX, event.clientY, highlightLayer);
@@ -848,12 +812,8 @@ export {};
 
     if (threadRail)
       threadRail.addEventListener("click", async (event) => {
-        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-        // @ts-expect-error
-        const button = event.target.closest("[data-action]");
-        // TODO(ts): TS2339 Property 'closest' does not exist on type 'EventTarget'.
-        // @ts-expect-error
-        const card = event.target.closest("[data-thread-id]");
+        const button = (event.target as Element).closest<HTMLElement>("[data-action]");
+        const card = (event.target as Element).closest<HTMLElement>("[data-thread-id]");
 
         if (!button && card) {
           const threadId = card.dataset.threadId;
@@ -898,8 +858,6 @@ export {};
         initCollabEditor();
       } else {
         if (shareAccess === "comment" && !payload.viewer.isOwner && !payload.viewer.commenterName) {
-          // TODO(ts): TS2554 Expected 3 arguments, but got 2.
-          // @ts-expect-error
           openIdentityModal(refs, true);
         }
         connectWebSocket(refs, isPublic);
@@ -983,8 +941,6 @@ export {};
           if (refsArg.titleInput && refsArg.titleInput.value !== payload.note.title) {
             refsArg.titleInput.value = payload.note.title;
           }
-          // TODO(ts): TS2554 Expected 0 arguments, but got 1.
-          // @ts-expect-error
           syncSidebarTitle(payload.note.title);
           setPreviewHtml(refsArg, payload.note.renderedHtml || "");
         }
@@ -1299,12 +1255,10 @@ export {};
       </div>
     `;
     popover.classList.remove("hidden");
-    const select = popover.querySelector("#shareAccessSelect");
+    const select = popover.querySelector<HTMLSelectElement>("#shareAccessSelect");
     const copyBtn = popover.querySelector("#shareCopyBtn");
     select.addEventListener("change", async () => {
       if (!state.note) return;
-      // TODO(ts): TS2339 Property 'value' does not exist on type 'Element'.
-      // @ts-expect-error
       const val = select.value;
       state.note.shareAccess = val;
       await api(`/api/notes/${state.note.id}`, { method: "PUT", body: { shareAccess: val } });
@@ -1321,8 +1275,6 @@ export {};
       }
     });
     copyBtn.addEventListener("click", async () => {
-      // TODO(ts): TS2339 Property 'value' does not exist on type 'Element'.
-      // @ts-expect-error
       if (select.value === "none") return;
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -1505,7 +1457,9 @@ export {};
       if (!match) {
         continue;
       }
-      const rects = Array.from(match.range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
+      const rects = Array.from<DOMRect>(match.range.getClientRects()).filter(
+        (rect) => rect.width > 0 && rect.height > 0,
+      );
       if (!rects.length) {
         continue;
       }
@@ -1631,16 +1585,13 @@ export {};
   }
 
   function buildMessageTree(messages) {
-    const nodes = new Map(messages.map((message) => [message.id, { message, children: [] }]));
+    type MessageNode = { message: any; children: MessageNode[] };
+    const nodes = new Map<string, MessageNode>(messages.map((message) => [message.id, { message, children: [] }]));
     const roots = [];
 
     for (const node of nodes.values()) {
-      // TODO(ts): TS2339 Property 'message' does not exist on type 'unknown'.
-      // @ts-expect-error
       const parentId = node.message.parentId;
       if (parentId && nodes.has(parentId)) {
-        // TODO(ts): TS2339 Property 'children' does not exist on type 'unknown'.
-        // @ts-expect-error
         nodes.get(parentId).children.push(node);
       } else {
         roots.push(node);
@@ -1673,15 +1624,11 @@ export {};
     if (!match) {
       return;
     }
-    // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.; TS2339 Property 'height' does not exist on type 'unknown'.
-    // @ts-expect-error
-    const rects = Array.from(match.range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
+    const rects = Array.from<DOMRect>(match.range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
     if (!rects.length) {
       return;
     }
     const canvasRect = refs.previewCanvas.getBoundingClientRect();
-    // TODO(ts): TS2339 Property 'top' does not exist on type 'unknown'.
-    // @ts-expect-error
     const targetTop = rects[0].top - canvasRect.top - 80;
     refs.previewScroll.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
   }
@@ -1722,7 +1669,7 @@ export {};
     refs.selectionBubble.classList.remove("hidden");
   }
 
-  function openIdentityModal(refs, mandatory, onDone) {
+  function openIdentityModal(refs, mandatory, onDone?) {
     openModal(refs, {
       title: "",
       description: "",
@@ -1759,8 +1706,6 @@ export {};
     const refs = options.refs;
 
     if (!state.viewer?.isOwner && !state.viewer?.commenterName) {
-      // TODO(ts): TS2554 Expected 3 arguments, but got 2.
-      // @ts-expect-error
       openIdentityModal(refs, true);
       return;
     }
@@ -1886,7 +1831,7 @@ export {};
       </div>
     `;
 
-    const form = document.getElementById("modalForm");
+    const form = document.getElementById("modalForm") as HTMLFormElement;
     const cancelButton = document.getElementById("modalCancel");
     const errorNode = document.getElementById("modalError");
 
@@ -1899,17 +1844,13 @@ export {};
       });
     }
 
-    const firstInput = form.querySelector("textarea, input");
+    const firstInput = form.querySelector<HTMLElement>("textarea, input");
     if (firstInput) {
-      // TODO(ts): TS2339 Property 'focus' does not exist on type 'Element'.
-      // @ts-expect-error
       setTimeout(() => firstInput.focus(), 50);
     }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      // TODO(ts): TS2345 Argument of type 'HTMLElement' is not assignable to parameter of type 'HTMLFormElement'.
-      // @ts-expect-error
       const formData = new FormData(form);
       const values = Object.fromEntries(formData.entries());
       errorNode.classList.add("hidden");
@@ -2054,23 +1995,13 @@ export {};
     });
   }
 
-  function mergeRects(rects, canvasRect) {
+  function mergeRects(rects: DOMRect[], canvasRect) {
     const items = Array.from(rects)
-      // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.; TS2339 Property 'height' does not exist on type 'unknown'.
-      // @ts-expect-error
       .filter((r) => r.width > 0 && r.height > 0)
       .map((r) => ({
-        // TODO(ts): TS2339 Property 'left' does not exist on type 'unknown'.
-        // @ts-expect-error
         left: r.left - canvasRect.left,
-        // TODO(ts): TS2339 Property 'top' does not exist on type 'unknown'.
-        // @ts-expect-error
         top: r.top - canvasRect.top,
-        // TODO(ts): TS2339 Property 'width' does not exist on type 'unknown'.
-        // @ts-expect-error
         width: r.width,
-        // TODO(ts): TS2339 Property 'height' does not exist on type 'unknown'.
-        // @ts-expect-error
         height: r.height,
       }))
       .sort((a, b) => a.top - b.top || a.left - b.left);

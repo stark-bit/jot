@@ -147,18 +147,14 @@ function syncMirrorStyles(mirror, textarea) {
   mirror.style.width = textarea.offsetWidth + "px";
 }
 
-function measureCaretPositions(textarea, mirror, indices) {
+function measureCaretPositions(textarea, mirror, indices: number[]) {
   syncMirrorStyles(mirror, textarea);
   const text = textarea.value;
-  // TODO(ts): TS2362 The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.; TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
-  // @ts-expect-error
   const sorted = [...new Set(indices)].sort((a, b) => a - b);
   mirror.textContent = "";
   const markers = new Map();
   let last = 0;
   for (const idx of sorted) {
-    // TODO(ts): TS2345 Argument of type 'unknown' is not assignable to parameter of type 'number'.
-    // @ts-expect-error
     const clampedIdx = Math.max(0, Math.min(idx, text.length));
     if (clampedIdx > last) mirror.appendChild(document.createTextNode(text.substring(last, clampedIdx)));
     const span = document.createElement("span");

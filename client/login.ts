@@ -5,7 +5,7 @@ export {};
 (() => {
   const mode = document.body.dataset.authMode;
   const ownerTokenKey = window.__OWNER_TOKEN_KEY__ || "md_owner_token";
-  const form = document.getElementById("auth-form");
+  const form = document.getElementById("auth-form") as HTMLFormElement;
   const errorNode = document.getElementById("auth-error");
 
   restoreOwnerSession().then((restored) => {
@@ -21,8 +21,6 @@ export {};
     event.preventDefault();
     setError("");
 
-    // TODO(ts): TS2345 Argument of type 'HTMLElement' is not assignable to parameter of type 'HTMLFormElement'.
-    // @ts-expect-error
     const formData = new FormData(form);
     const body = Object.fromEntries(formData.entries());
     const endpoint = mode === "setup" ? "/api/auth/setup" : "/api/auth/login";
