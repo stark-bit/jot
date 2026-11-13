@@ -549,26 +549,61 @@
       updateCommentFab(refs);
     });
 
+    // On mobile the preview is an overlay. Opening it pushes a history entry so
+    // the native back button closes the preview instead of leaving the note.
+    // Every close path goes through history.back(); popstate does the hiding.
+    const isPreviewOpen = () => document.getElementById("previewStage")?.classList.contains("preview-open") ?? false;
+    // Matches the breakpoint in styles.css where the preview becomes an overlay.
+    const isNarrow = () => window.matchMedia("(max-width: 980px)").matches;
+
+    const showPreview = () => {
+      document.getElementById("previewStage")?.classList.add("preview-open");
+      if (previewFab) {
+        previewFab.style.display = "none";
+      }
+    };
+
+    const hidePreview = () => {
+      document.getElementById("previewStage")?.classList.remove("preview-open");
+      if (previewFab) {
+        previewFab.style.display = "";
+      }
+    };
+
+    const closePreview = () => {
+      if (history.state?.preview) {
+        history.back();
+      } else {
+        hidePreview();
+      }
+    };
+
     if (previewFab) {
       previewFab.addEventListener("click", () => {
-        const stage = document.getElementById("previewStage");
-        if (stage) {
-          stage.classList.add("preview-open");
-          previewFab.style.display = "none";
+        if (document.getElementById("previewStage") && !isPreviewOpen()) {
+          showPreview();
+          history.pushState({ preview: true }, "");
         }
       });
     }
 
+    window.addEventListener("popstate", () => {
+      const wasOpen = isPreviewOpen();
+      if (history.state?.preview && isNarrow()) {
+        // Forward navigation back onto the preview entry.
+        showPreview();
+        return;
+      }
+      hidePreview();
+      if (wasOpen && !isNarrow()) {
+        // The window was widened while the preview was open, so the overlay
+        // was not visible. Do not swallow the back press; keep going.
+        history.back();
+      }
+    });
+
     if (previewCloseButton) {
-      previewCloseButton.addEventListener("click", () => {
-        const stage = document.getElementById("previewStage");
-        if (stage) {
-          stage.classList.remove("preview-open");
-          if (previewFab) {
-            previewFab.style.display = "";
-          }
-        }
-      });
+      previewCloseButton.addEventListener("click", closePreview);
     }
 
     // Swipe right to close preview on mobile
@@ -590,11 +625,8 @@
           (e) => {
             const dx = e.changedTouches[0].clientX - touchStartX;
             const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-            if (dx > 80 && dy < 100) {
-              previewStage.classList.remove("preview-open");
-              if (previewFab) {
-                previewFab.style.display = "";
-              }
+            if (dx > 80 && dy < 100 && isPreviewOpen()) {
+              closePreview();
             }
           },
           { passive: true },
