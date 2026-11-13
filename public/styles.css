@@ -727,6 +727,36 @@ textarea:focus {
 .markdown-body li + li {
   margin-top: 0.25rem;
 }
+.markdown-body li:has(> .task-checkbox),
+.markdown-body li:has(> p > .task-checkbox) {
+  list-style: none;
+  margin-left: -1.4rem;
+}
+.markdown-body .task-checkbox {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.35em;
+  vertical-align: -0.1em;
+  border: 1.5px solid var(--muted);
+  border-radius: 2px;
+  position: relative;
+}
+.markdown-body .task-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.markdown-body .task-checkbox.checked::after {
+  content: "";
+  position: absolute;
+  left: 0.28em;
+  top: 0.08em;
+  width: 0.22em;
+  height: 0.48em;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 .markdown-body code {
   font-family: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, monospace;
   font-size: 0.95em;

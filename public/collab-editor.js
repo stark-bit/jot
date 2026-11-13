@@ -47,7 +47,8 @@ function lineBackward(text, cursor) {
   return Math.max(0, i);
 }
 
-// Detect a list marker at lineStart.
+// Detect a list marker at lineStart. `current` is the marker on this line;
+// `marker` is what Enter inserts on the next one.
 export function listMarkerAt(text, lineStart) {
   let i = lineStart;
   let indent = "";
@@ -55,13 +56,18 @@ export function listMarkerAt(text, lineStart) {
     indent += text[i];
     i++;
   }
-  if (text.slice(i, i + 2) !== "- ") return null;
-  return { indent, marker: "- " };
+  const rest = text.slice(i, i + 16);
+  const task = /^- \[[ xX]\] /.exec(rest);
+  if (task) return { indent, current: task[0], marker: "- [ ] " };
+  if (rest.startsWith("- ")) return { indent, current: "- ", marker: "- " };
+  const num = /^(\d{1,9})\. /.exec(rest);
+  if (num) return { indent, current: num[0], marker: `${Number(num[1]) + 1}. ` };
+  return null;
 }
 
 // True when Enter should continue the list.
 function continuesList(text, lineStart, marker, caret) {
-  const markerEnd = lineStart + marker.indent.length + marker.marker.length;
+  const markerEnd = lineStart + marker.indent.length + marker.current.length;
   if (caret < markerEnd) return false;
   let lineEnd = text.indexOf("\n", lineStart);
   if (lineEnd === -1) lineEnd = text.length;
@@ -474,7 +480,7 @@ export function createCollabEditor(textarea, opts) {
     }
     if (it === "insertLineBreak" || it === "insertParagraph") {
       event.preventDefault();
-      // Continue bullets on Enter; plain newline otherwise.
+      // Continue bullets, numbered items and task items on Enter; plain newline otherwise.
       const lineStart = lineBackward(currentState.text, sel.start);
       const m = listMarkerAt(currentState.text, lineStart);
       let ins = "\n";

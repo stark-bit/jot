@@ -97,6 +97,13 @@ describe("renderMarkdown keeps the good stuff", () => {
     expect(await renderOwner("```mermaid\ngraph TD; A-->B\n```")).toContain('<pre class="mermaid">');
   });
 
+  it("task list checkboxes", async () => {
+    const html = await renderOwner("- [ ] todo\n- [x] done");
+    expect(html).toContain('<span class="task-checkbox"></span>');
+    expect(html).toContain('<span class="task-checkbox checked"></span>');
+    expect(html).not.toContain("<input");
+  });
+
   it("tables", async () => {
     expect(await renderOwner("| a | b |\n|---|---|\n| 1 | 2 |")).toContain("<table>");
   });

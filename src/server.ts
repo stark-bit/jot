@@ -165,6 +165,9 @@ codeRenderer.code = ({ text, lang }: Tokens.Code) => {
   const languageClass = validLanguage ? ` class="hljs language-${escapeHtml(validLanguage)}"` : ' class="hljs"';
   return `<pre><code${languageClass}>${highlighted}</code></pre>`;
 };
+// Task list boxes as spans, so the sanitizer never has to allow <input>.
+codeRenderer.checkbox = ({ checked }: Tokens.Checkbox) =>
+  `<span class="task-checkbox${checked ? " checked" : ""}"></span>`;
 
 marked.setOptions({
   gfm: true,
@@ -1818,7 +1821,7 @@ function renderMarkdown(markdown: string) {
     },
     allowedClasses: {
       code: ["hljs", /^language-/],
-      span: [/^hljs.*/],
+      span: [/^hljs.*/, "task-checkbox", "checked"],
       pre: ["mermaid"],
     },
     allowedSchemes: ["http", "https", "mailto"],
