@@ -9,7 +9,7 @@
   ],
   "description": "Minimal self-hosted markdown editor with inline comment threads",
   "scripts": {
-    "dev": "npm run build:client && (tsc -b client --watch --preserveWatchOutput & node scripts/copy-styles.mjs --watch & tsx watch server/server.ts)",
+    "dev": "npm run build:client && (tsc -b client --watch --preserveWatchOutput & node scripts/copy-styles.mjs --watch & PORT=2222 tsx watch server/server.ts)",
     "build": "npm run build:server && npm run build:client && npm run build:cli",
     "build:server": "tsc -b server",
     "build:client": "tsc -b client && node scripts/copy-styles.mjs",
