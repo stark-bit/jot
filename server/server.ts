@@ -2250,7 +2250,7 @@ function renderAuthPage(mode: "login" | "setup") {
     </main>
     <script>window.__OWNER_TOKEN_KEY__ = ${JSON.stringify(ownerLocalStorageTokenKey)};</script>
     <script>document.querySelectorAll('.theme-toggle').forEach(function(b){b.innerHTML=window.__themeIcon(document.documentElement.getAttribute('data-theme')||'dark')});</script>
-    <script src="${staticSrc("login.js")}" defer></script>
+    <script type="module" src="${staticSrc("login.js")}"></script>
   </body>
 </html>`;
 }
@@ -2282,7 +2282,7 @@ function renderAppShell(
     <div id="app"></div>
     <script>window.__OWNER_TOKEN_KEY__ = ${JSON.stringify(ownerLocalStorageTokenKey)};window.__STATIC_VERSION__ = ${JSON.stringify(staticVersion)};</script>
     <script>document.querySelectorAll('.theme-toggle').forEach(function(b){b.innerHTML=window.__themeIcon(document.documentElement.getAttribute('data-theme')||'dark')});</script>
-    <script src="${staticSrc("components.js")}"></script>${
+    <script type="module" src="${staticSrc("components.js")}"></script>${
       page !== "list"
         ? `
     <script type="module">
@@ -2293,7 +2293,7 @@ function renderAppShell(
     </script>`
         : ""
     }
-    <script src="${staticSrc("app.js")}" defer></script>
+    <script type="module" src="${staticSrc("app.js")}"></script>
   </body>
 </html>`;
 }

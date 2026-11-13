@@ -1,3 +1,7 @@
+// Loaded with <script type="module">; the export marks this file as a module for TypeScript.
+// oxlint-disable-next-line unicorn/require-module-specifiers -- intentional empty export, see above
+export {};
+
 (() => {
   const mode = document.body.dataset.authMode;
   // TODO(ts): TS2339 Property '__OWNER_TOKEN_KEY__' does not exist on type 'Window & typeof globalThis'.

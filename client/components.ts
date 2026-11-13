@@ -1,3 +1,7 @@
+// Loaded with <script type="module">; the export marks this file as a module for TypeScript.
+// oxlint-disable-next-line unicorn/require-module-specifiers -- intentional empty export, see above
+export {};
+
 // Web components for jot UI (no shadow DOM)
 
 const ICONS = {
