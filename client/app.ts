@@ -148,6 +148,7 @@ export {};
     visibleMatches: new Map(),
     pendingAnchor: null,
     saveTimer: null,
+    statusFadeTimer: null,
     renderTimer: null,
     searchTimer: null,
     layoutFrame: 0,
@@ -1222,11 +1223,7 @@ export {};
       refs.saveStatus.textContent = value;
       refs.saveStatus.classList.remove("status-fade");
       if (value === "Saved") {
-        // TODO(ts): TS2339 Property 'statusFadeTimer' does not exist on type '{ page: string; noteId: string; shareId: string; shareAccess: string; note: any; viewer: any; threads: any[]; activeThreadId: any; visibleMatches: Map<any, any>; pendingAnchor: any; saveTimer: any; ... 6 more ...; modalOpen: boolean; }'.
-        // @ts-expect-error
         clearTimeout(state.statusFadeTimer);
-        // TODO(ts): TS2339 Property 'statusFadeTimer' does not exist on type '{ page: string; noteId: string; shareId: string; shareAccess: string; note: any; viewer: any; threads: any[]; activeThreadId: any; visibleMatches: Map<any, any>; pendingAnchor: any; saveTimer: any; ... 6 more ...; modalOpen: boolean; }'.
-        // @ts-expect-error
         state.statusFadeTimer = setTimeout(() => {
           refs.saveStatus.classList.add("status-fade");
         }, 1500);
@@ -1263,14 +1260,8 @@ export {};
       state.note.shareAccess = val;
       await api(`/api/notes/${state.note.id}`, { method: "PUT", body: { shareAccess: val } });
       if (val === "none") {
-        // TODO(ts): TS2339 Property 'disabled' does not exist on type 'Element'.
-        // @ts-expect-error
-        copyBtn.disabled = true;
         copyBtn.classList.add("share-copy-disabled");
       } else {
-        // TODO(ts): TS2339 Property 'disabled' does not exist on type 'Element'.
-        // @ts-expect-error
-        copyBtn.disabled = false;
         copyBtn.classList.remove("share-copy-disabled");
       }
     });
